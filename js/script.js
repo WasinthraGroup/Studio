@@ -211,15 +211,29 @@ async function initRegister() {
     });
 }
 
-function updateNavbarUI(session) {
+async function updateNavbarUI(session) {
+    const navAction = $('#navAction');
     const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+
     if (session) {
-        $('#navAction').html(`<div class="flex gap-4 items-center"><a href="workshop.html" class="text-sm">เวิร์กชอป</a><button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded text-xs">Logout</button></div>`);
-    } else if (isHome) {
-        $('#navAction').html(`<a href="login.html" class="btn-thai">Login</a>`);
+        const { data: profile } = await client.from('profiles').select('avatar_url').eq('id', session.user.id).single();
+        const avatar = (profile && profile.avatar_url) ? profile.avatar_url : 'https://via.placeholder.com/40';
+
+        navAction.html(`
+            <div class="flex gap-6 items-center">
+                <button onclick="openProfileModal()" class="flex items-center gap-2 hover:opacity-80 transition-all">
+                    <img id="navAvatar" src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-[#b38b59]/30">
+                    <span class="text-sm font-bold text-[#2d2d2d]">โปรไฟล์</span>
+                </button>
+                <button id="logoutBtn" class="text-red-700 text-sm font-medium hover:underline">ออกจากระบบ</button>
+            </div>
+        `);
+    } else {
+        navAction.html(`
+            <a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm transition-all">เข้าสู่ระบบพนักงาน</a>
+        `);
     }
 }
-
 
 
 
