@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>สมัครพนักงาน</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+</head>
+
+<body class="bg-gray-50 flex justify-center items-center h-screen">
+
+    <div class="bg-white p-10 rounded-xl shadow w-96">
+
+        <h2 class="text-xl font-bold mb-6">
+
+            สมัครพนักงาน
+
+        </h2>
+
+        <form id="registerForm" class="space-y-4">
+
+            <input id="email" placeholder="email" class="w-full border p-2" required>
+
+            <input id="username" placeholder="username" class="w-full border p-2" required>
+
+            <input type="password" id="password" placeholder="password" class="w-full border p-2" required>
+
+            <input type="password" id="confirm" placeholder="confirm password" class="w-full border p-2" required>
+
+            <button class="w-full bg-red-700 text-white py-2">
+
+                สมัคร
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <script src="register.js"></script>
+
+</body>
+
+</html>
