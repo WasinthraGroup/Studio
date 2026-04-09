@@ -15,19 +15,41 @@
 </head>
 <body class="hidden bg-[#fdfaf5]">
     <nav class="main-header fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
-            <div class="text-xl font-bold text-red-700">ว.<span>Studio</span></div>
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-                <a href="index.html" class="hover:text-red-700 transition">หน้าหลัก</a>
-                <a href="workshop.html" class="text-red-700">เวิร์กชอป</a>
-                <div id="hrLinks" class="hidden flex gap-8">
-                    <a href="#" class="hover:text-red-700 transition">จัดการสมาชิก</a>
-                    <a href="#" class="hover:text-red-700 transition">รายงานสรุป</a>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="userDisplay" class="hidden md:block text-xs font-bold bg-gray-100 px-3 py-1 rounded-full"></span>
-                <button id="logoutBtn" class="text-xs font-bold text-red-600 border border-red-600 px-4 py-2 rounded-lg hover:bg-red-50">ออกจากระบบ</button>
+        <div id="navAction" class="flex gap-4 items-center">
+    <button onclick="openProfileModal()" class="text-sm font-bold hover:text-blue-600">โปรไฟล์</button>
+    <button id="logoutBtn" class="text-red-500 text-sm">ออกจากระบบ</button>
+</div>
+
+<div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">ตั้งค่าโปรไฟล์</h3>
+            <button onclick="closeProfileModal()" class="text-gray-400 hover:text-black">&times;</button>
+        </div>
+                <form id="profileUpdateForm" class="space-y-4">
+                    <div class="flex flex-col items-center gap-3">
+                        <img id="profilePreview" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover border-4 border-gray-100">
+                        <input type="file" id="avatarInput" accept="image/*" class="text-xs">
+                    </div>
+        
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">ชื่อ-นามสกุล</label>
+                        <input type="text" id="editFullName" class="w-full border p-2 rounded-lg mt-1" required>
+                    </div>
+        
+                    <hr class="my-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">เปลี่ยนรหัสผ่าน (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</p>
+                    
+                    <div>
+                        <label class="text-xs font-bold text-gray-500">รหัสผ่านใหม่</label>
+                        <input type="password" id="newProfilePass" class="w-full border p-2 rounded-lg mt-1" placeholder="••••••••">
+                    </div>
+        
+                    <div class="flex gap-2 pt-4">
+                        <button type="button" onclick="closeProfileModal()" class="flex-1 py-2 text-gray-500 font-bold">ยกเลิก</button>
+                        <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700">บันทึกข้อมูล</button>
+                    </div>
+                </form>
             </div>
         </div>
     </nav>
