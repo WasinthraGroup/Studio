@@ -318,7 +318,7 @@ async function updateNavbarUI(session) {
         const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
         const avatar = profile?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
         const name = profile?.full_name || profile?.username || 'ผู้ใช้งาน';
-        const role = profile?.role === 'hr' ? 'HR Manager' : 'Staff';
+        const role = profile?.role === 'hr' ? 'Tech Management' : 'Staff';
 
         navAction.html(`
             <div class="relative inline-block text-left">
