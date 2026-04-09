@@ -215,37 +215,41 @@ async function initRegister() {
 
 
 
+
+
+
+
+
+
 async function updateNavbarUI(session) {
     const navAction = $('#navAction');
-    if (!navAction.length) return;
+    
+    if (session) {
+        const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
+        const avatar = profile?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
+        const name = profile?.full_name || profile?.username || 'ผู้ใช้งาน';
 
-    if (session && session.user) {
-        try {
-            const { data: profile, error } = await client
-                .from('profiles')
-                .select('avatar_url, full_name')
-                .eq('id', session.user.id)
-                .single();
+        navAction.html(`
+            <div class="relative inline-block text-left">
+                <button onclick="toggleDropdown()" class="flex items-center gap-3 hover:bg-gray-100 p-2 rounded-xl transition-all border border-transparent hover:border-gray-200">
+                    <span class="text-sm font-bold text-gray-700 hidden md:block">${name}</span>
+                    <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-[#b38b59]/20">
+                </button>
 
-            if (error) throw error;
-
-            const avatar = (profile && profile.avatar_url) ? profile.avatar_url : 'https://via.placeholder.com/40';
-            const displayName = (profile && profile.full_name) ? profile.full_name : 'โปรไฟล์';
-
-            navAction.html(`
-                <div class="flex gap-6 items-center">
-                    <button onclick="openProfileModal()" class="flex items-center gap-2 hover:opacity-80 transition-all group">
-                        <img id="navAvatar" src="${avatar}" class="w-9 h-9 rounded-full object-cover border-2 border-[#b38b59]/20 group-hover:border-[#b38b59]/50 transition-all">
-                        <span class="text-sm font-semibold text-gray-700">${displayName}</span>
+                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[1001]">
+                    <div class="px-4 py-2 border-bottom mb-2">
+                         <p class="text-[10px] font-bold text-gray-400 uppercase">จัดการบัญชี</p>
+                    </div>
+                    <button onclick="openProfileModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                        <span>⚙️</span> ตั้งค่าโปรไฟล์
                     </button>
-                    <div class="h-4 w-[1px] bg-gray-300"></div>
-                    <button id="logoutBtn" class="text-red-700 text-sm font-medium hover:text-red-500 transition-colors">ออกจากระบบ</button>
+                    <hr class="my-1 border-gray-50">
+                    <button id="logoutBtn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                        <span>🚪</span> ออกจากระบบ
+                    </button>
                 </div>
-            `);
-        } catch (err) {
-            console.error("Navbar Error:", err);
-            navAction.html(`<button id="logoutBtn" class="text-red-700 text-sm">ออกจากระบบ</button>`);
-        }
+            </div>
+        `);
     } else {
         navAction.html(`
             <a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm font-semibold transition-all">เข้าสู่ระบบพนักงาน</a>
@@ -253,6 +257,15 @@ async function updateNavbarUI(session) {
     }
 }
 
+function toggleDropdown() {
+    $('#profileDropdown').toggleClass('hidden');
+}
+
+$(window).on('click', function(e) {
+    if (!$(e.target).closest('#navAction').length) {
+        $('#profileDropdown').addClass('hidden');
+    }
+});
 
 
 
