@@ -209,7 +209,7 @@ async function loadContents(type, containerId) {
 
     container.append(`
         <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
-            <div class="h-48 bg-gray-200 bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
+            <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
             <div class="p-6">
                 <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">${item.type}</span>
                 <h3 class="font-bold text-lg mt-2 mb-3">${item.title}</h3>
