@@ -15,13 +15,33 @@
 <body class="bg-[#fdfaf5]">
   <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
-        <div class="text-xl font-bold" style="color: var(--thai-red);">ว.<span>Studio</span></div>
         
-        <div id="navAction" class="relative">
+        <div class="flex items-center gap-10">
+            <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='index.html'" style="color: var(--thai-red);">
+                ว.<span>Studio</span>
             </div>
+            
+            <div id="desktopNav" class="hidden md:flex items-center gap-8">
+                </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div id="navAction" class="relative">
+                </div>
+            
+            <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
     </div>
 
-    </nav>
+    <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-xl">
+        <div id="mobileMenuLinks" class="flex flex-col gap-4">
+            </div>
+    </div>
+</nav>
 
 
 
