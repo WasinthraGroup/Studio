@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop | Thai Work System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="hidden"> <nav class="main-header">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+            <div class="text-xl font-bold" style="color: var(--thai-red);">THAI<span>WORK</span></div>
+            <button id="logoutBtn" class="text-sm text-gray-500 hover:text-red-600 transition">Logout</button>
+        </div>
+    </nav>
+
+    <main class="pt-32 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <aside id="hrMenu" class="hidden space-y-6">
+            <div class="card-thai bg-amber-50">
+                <h3 class="font-bold mb-4" style="color: var(--thai-red);">HR Management</h3>
+                <form id="addStaffForm" class="space-y-3">
+                    <p class="text-xs text-gray-500">เพิ่มพนักงานใหม่</p>
+                    <input type="text" id="newStaffName" placeholder="ชื่อ-นามสกุล" class="w-full border p-2 text-sm rounded">
+                    <input type="email" id="newStaffEmail" placeholder="อีเมล" class="w-full border p-2 text-sm rounded">
+                    <button type="submit" class="w-full btn-thai text-sm">บันทึกพนักงาน</button>
+                </form>
+            </div>
+        </aside>
+
+        <section class="md:col-span-2 space-y-6">
+            <div class="card-thai reveal">
+                <h2 class="text-2xl font-bold mb-4" style="color: var(--thai-red);">ตารางงานปัจจุบัน</h2>
+                <div id="taskList" class="space-y-3">
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const client = supabase.createClient('YOUR_URL', 'YOUR_KEY');
+
+        async function initWorkshop() {
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // ดึง Role ของพนักงาน
+            const { data: profile } = await client.from('profiles').select('role').eq('id', session.user.id).single();
+            
+            if (profile.role === 'hr') {
+                $('#hrMenu').removeClass('hidden'); // แสดงเมนู HR
+            }
+            
+            $('body').removeClass('hidden'); // แสดงหน้าเว็บเมื่อตรวจสอบสิทธิ์เสร็จ
+        }
+
+        $('#logoutBtn').click(async () => {
+            await client.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        initWorkshop();
+    </script>
+</body>
+</html>
