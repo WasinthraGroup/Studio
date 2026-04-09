@@ -9,7 +9,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { 
-    font-family: 'Itim', cursive;
+    font-family: 'Mali', sans-serif;
     background-color: var(--soft-cream); 
     color: var(--text-main);
 }
