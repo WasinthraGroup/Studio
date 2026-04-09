@@ -30,8 +30,7 @@ $(document).ready(function() {
             }
 
             // 2. ทำการ Login (ใช้อีเมลจำลองที่สัมพันธ์กับตอนสมัคร)
-            // หมายเหตุ: ตรง @yourcompany.com ต้องตรงกับที่คุณตั้งไว้ตอนเพิ่มพนักงาน
-            const email = userInput + "@yourcompany.com"; 
+            const email = userInput + "@gmail.com"; 
 
             const { data: authData, error: loginError } = await client.auth.signInWithPassword({
             email: email,
