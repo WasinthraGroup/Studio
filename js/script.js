@@ -243,35 +243,82 @@ async function initRegister() {
 
 async function updateNavbarUI(session) {
     const navAction = $('#navAction');
+    const mobileMenu = $('#mobileMenu');
+    const currentPage = window.location.pathname.split("/").pop() || 'index.html';
+
+    const menuItems = [
+        { name: 'หน้าแรก', url: 'index.html' },
+        { name: 'เวิร์กชอป', url: 'workshop.html' },
+    ];
+
+    const navLinksHTML = menuItems.map(item => `
+        <a href="${item.url}" class="text-sm font-bold transition-colors ${currentPage === item.url ? 'text-[#721c24]' : 'text-gray-500 hover:text-[#721c24]'}">
+            ${item.name}
+        </a>
+    `).join('');
+    
+    $('#desktopNav').html(navLinksHTML);
+
+    $('#mobileMenuLinks').html(menuItems.map(item => `
+        <a href="${item.url}" class="block text-sm font-bold py-2 ${currentPage === item.url ? 'text-[#721c24]' : 'text-gray-600'}">
+            ${item.name}
+        </a>
+    `).join(''));
+
     if (session) {
         const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
         const avatar = profile?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
         const name = profile?.full_name || profile?.username || 'ผู้ใช้งาน';
+        const role = profile?.role === 'hr' ? 'HR Manager' : 'Staff';
 
         navAction.html(`
             <div class="relative inline-block text-left">
-                <button onclick="toggleDropdown()" class="flex items-center gap-3 hover:bg-gray-100 p-2 rounded-xl transition-all border border-transparent hover:border-gray-200">
-                    <span class="text-sm font-bold text-gray-700 hidden md:block">${name}</span>
-                    <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-[#b38b59]/20">
+                <button onclick="toggleDropdown()" class="flex items-center gap-3 hover:bg-gray-50 p-1.5 md:p-2 rounded-xl transition-all border border-transparent hover:border-gray-100">
+                    <div class="text-right hidden md:block">
+                        <p class="text-xs font-bold text-gray-800 leading-none">${name}</p>
+                        <p class="text-[10px] text-gray-400 uppercase mt-1 tracking-tighter">${role}</p>
+                    </div>
+                    <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-[#b38b59]/20 shadow-sm">
                 </button>
-                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[1001]">
-                    <div class="px-4 py-2 border-b mb-2">
+
+                <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[1001] animate__animated animate__fadeInUp animate__faster">
+                    <div class="px-4 py-2 border-b border-gray-50 mb-2">
                          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">จัดการบัญชี</p>
                     </div>
-                    <button onclick="openProfileModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        <span>⚙️</span> ตั้งค่าโปรไฟล์
+                    
+                    <button onclick="openProfileModal()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                        <span class="text-blue-500">⚙️</span> ตั้งค่าโปรไฟล์
                     </button>
-                    <hr class="my-1 border-gray-50">
-                    <button id="logoutBtn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                    
+                    <a href="workshop.html" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3">
+                        <span class="text-purple-500">📅</span> ตารางงานของฉัน
+                    </a>
+
+                    <hr class="my-2 border-gray-50">
+                    
+                    <button id="logoutBtn" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3">
                         <span>🚪</span> ออกจากระบบ
                     </button>
                 </div>
             </div>
         `);
     } else {
-        navAction.html(`<a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm font-semibold transition-all">เข้าสู่ระบบพนักงาน</a>`);
+        navAction.html(`
+            <div class="flex items-center gap-3">
+                <a href="login.html" class="hidden md:block text-sm font-bold text-gray-600 hover:text-[#721c24]">เข้าสู่ระบบ</a>
+                <a href="login.html" class="bg-[#721c24] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-900/20 hover:opacity-90 active:scale-95 transition-all">
+                    เริ่มใช้งาน
+                </a>
+            </div>
+        `);
     }
 }
+
+function toggleMobileMenu() {
+    $('#mobileMenu').toggleClass('hidden');
+}
+
+
 
 function toggleDropdown() {
     $('#profileDropdown').toggleClass('hidden');
