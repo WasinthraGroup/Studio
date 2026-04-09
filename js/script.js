@@ -33,18 +33,19 @@ $(document).ready(function() {
             // หมายเหตุ: ตรง @yourcompany.com ต้องตรงกับที่คุณตั้งไว้ตอนเพิ่มพนักงาน
             const email = userInput + "@yourcompany.com"; 
 
-            const { error: loginError } = await client.auth.signInWithPassword({
-                email: email,
-                password: password
+            const { data: authData, error: loginError } = await client.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        
+        if (loginError) {
+            console.error("Login Error Details:", loginError); // ดูใน Inspect > Console
+            Swal.fire({
+                icon: 'error',
+                title: 'เข้าสู่ระบบไม่สำเร็จ',
+                text: `สาเหตุ: ${loginError.message}` // ระบบจะบอกเองว่า Invalid Credentials หรือ Email not confirmed
             });
-
-            if (loginError) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ผิดพลาด',
-                    text: 'รหัสผ่านไม่ถูกต้อง'
-                });
-            } else {
+        } else {
                 window.location.href = 'workshop.html';
             }
             
