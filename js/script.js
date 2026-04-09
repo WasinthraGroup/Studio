@@ -62,9 +62,44 @@ $(document).ready(async function() {
                     confirmButtonText: 'ลองอีกครั้ง',
                     confirmButtonColor: '#d33'
                 });
+          } else {
+            const { data: { session } } = await client.auth.getSession();
+            const device = deviceHash();
+            const { data: dev } = await client
+                    .from("devices")
+                    .select("*")
+                    .eq(
+                        "user_id",
+                        session.user.id
+                    )
+                    .single();
+            if (!dev) {
+                await client
+                    .from("devices")
+                    .insert({
+                        user_id:
+                            session.user.id,
+                        device_hash:
+                            device
+                    });
             } else {
-                window.location.href = 'workshop.html';
+                if (
+                    dev.device_hash
+                    !== device
+                ) {
+                    await client
+                        .auth
+                        .signOut();
+                    Swal.fire({
+                        icon: "error",
+                        title: "ผิดพลาด",
+                        text: "บัญชีนี้ใช้ได้เฉพาะอุปกรณ์ที่สมัคร"
+                    });
+                    return;
+                }
             }
+            window.location.href ='workshop.html';
+        }
         } catch (err) {
             Swal.fire({
                 icon: 'error',
@@ -358,4 +393,14 @@ function setupHRFeatures() {
             this.reset();
         }
     });
+}
+
+
+function deviceHash(){
+    return btoa(
+    navigator.userAgent+
+    screen.width+
+    screen.height+
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+    );
 }
