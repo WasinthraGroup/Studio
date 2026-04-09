@@ -187,22 +187,43 @@ async function initRegister() {
     const token = params.get("token");
     if (!token) { Swal.fire("ลิงก์ไม่ถูกต้อง"); return; }
 
-    const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
-   const expireTime = invite ? new Date(invite.expires_at).getTime() : 0;
-    const currentTime = new Date().getTime();
     
-    console.log("Expire (Ms):", expireTime);
-    console.log("Current (Ms):", currentTime);
-    console.log("Diff (Sec):", (expireTime - currentTime) / 1000);
+   const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
+
+    if (!invite) {
+        Swal.fire("ไม่พบลิงก์นี้ในระบบ");
+        return;
+    }
     
-    if (!invite || invite.used || expireTime < currentTime) {
+    // 2. สร้าง Date Object จากค่าใน DB (JS จะแปลง UTC ใน DB ให้เป็น Local Time ของเครื่องเราอัตโนมัติ)
+    const expireDate = new Date(invite.expires_at); 
+    
+    // 3. เวลาปัจจุบันของเครื่องเรา (ซึ่งเป็น Local Time/UTC+7 อยู่แล้ว)
+    const currentDate = new Date();
+    
+    // 4. เทียบกันตรงๆ (หน่วยมิลลิวินาที)
+    const expireTimestamp = expireDate.getTime();
+    const currentTimestamp = currentDate.getTime();
+    
+    // Debug ดูค่า (จะเห็นว่ามันกลายเป็นเวลาไทยให้เราแล้ว)
+    console.log("Expire (Local):", expireDate.toLocaleString('th-TH'));
+    console.log("Current (Local):", currentDate.toLocaleString('th-TH'));
+    console.log("Diff (Sec):", (expireTimestamp - currentTimestamp) / 1000);
+    
+    // 5. เงื่อนไขการเช็ค
+    if (invite.used || expireTimestamp < currentTimestamp) {
         Swal.fire({
             icon: 'error',
             title: 'ลิงก์หมดอายุ',
-            text: `หมดอายุเมื่อ: ${new Date(expireTime).toLocaleString('th-TH')}`
+            text: `ลิงก์นี้หมดอายุแล้วเมื่อ: ${expireDate.toLocaleString('th-TH')}`
         }); 
         return;
     }
+
+
+
+
+    
 
     $('#registerForm').submit(async function(e) {
         e.preventDefault();
