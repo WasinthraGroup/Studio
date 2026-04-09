@@ -7,136 +7,150 @@
     <link rel="icon" href="Pics/Logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/script.js" defer></script>
+    <style>
+        :root { --thai-red: #721c24; }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body class="bg-[#fdfaf5]">
-  <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
-    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
-        
-        <div class="flex items-center gap-10">
-            <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='index.html'" style="color: var(--thai-red);">
-                ว.<span>Studio</span>
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+            <div class="flex items-center gap-10">
+                <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='index.html'" style="color: var(--thai-red);">
+                    ว.<span>Studio</span>
+                </div>
+                <div id="desktopNav" class="hidden md:flex items-center gap-8">
+                    </div>
             </div>
             
-            <div id="desktopNav" class="hidden md:flex items-center gap-8">
-                </div>
-        </div>
-        
-        <div class="flex items-center gap-4">
-            <div id="navAction" class="relative">
-                </div>
-            
-            <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-xl">
-        <div id="mobileMenuLinks" class="flex flex-col gap-4">
+            <div class="flex items-center gap-4">
+                <div id="navAction" class="relative"></div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
             </div>
-    </div>
-</nav>
-
-
-
-
-
-
-
-
-<div id="profileModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl shadow-black/20 animate__animated animate__zoomIn animate__faster">
-        
-        <div class="bg-[#721c24] px-6 py-4 flex justify-between items-center text-white">
-            <h3 class="text-lg font-bold">ตั้งค่าบัญชี ว.Studio</h3>
-            <button onclick="closeProfileModal()" class="text-2xl hover:text-gray-300 transition-colors">&times;</button>
         </div>
 
-        <form id="profileUpdateForm" class="p-6 space-y-5">
-            <div class="flex flex-col items-center gap-3">
-                <div class="relative group">
-                    <img id="profilePreview" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover border-4 border-[#fdfaf5] shadow-md">
-                    <label for="avatarInput" class="absolute bottom-0 right-0 bg-[#b38b59] text-white p-1.5 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </label>
-                </div>
-                <input type="file" id="avatarInput" accept="image/*" class="hidden">
-                <p class="text-[10px] text-gray-400 font-bold uppercase">คลิกไอคอนเพื่อเปลี่ยนรูป</p>
-            </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-xl">
+            <div id="mobileMenuLinks" class="flex flex-col gap-4"></div>
+        </div>
+    </nav>
 
-            <div class="space-y-3">
+    <header class="pt-40 pb-20 px-6 text-center bg-gradient-to-b from-white to-[#fdfaf5]">
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6 animate__animated animate__fadeInDown">
+            ยินดีต้อนรับสู่ <span style="color: var(--thai-red);">ว.Studio</span>
+        </h1>
+        <p class="text-gray-600 max-w-2xl mx-auto text-lg animate__animated animate__fadeIn animate__delay-1s">
+            สร้างสรรค์ผลงานด้วยความประณีต บริหารจัดการอย่างเป็นระบบ เพื่อก้าวสู่ความสำเร็จที่ยั่งยืนไปพร้อมกับเรา
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 space-y-24 pb-20">
+
+        <section id="about" class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="rounded-3xl overflow-hidden shadow-2xl animate__animated animate__fadeInLeft">
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800" alt="About ว.Studio">
+            </div>
+            <div class="space-y-6 animate__animated animate__fadeInRight">
+                <h2 class="text-3xl font-bold border-l-4 border-red-700 pl-4">เกี่ยวกับเรา</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    ว.Studio เป็นพื้นที่สร้างสรรค์และจัดการองค์กรที่เน้นความทันสมัย เราให้บริการด้านการจัดการโปรเจกต์และข่าวสารภายในองค์กร เพื่อให้พนักงานและพันธมิตรของเราสามารถเข้าถึงข้อมูลได้อย่างรวดเร็วและมีประสิทธิภาพ
+                </p>
+                <button class="bg-gray-800 text-white px-8 py-3 rounded-full font-bold hover:bg-black transition-all">ทำความรู้จักเรามากขึ้น</button>
+            </div>
+        </section>
+
+        <section id="news">
+            <div class="flex items-center justify-between mb-10 border-b-2 border-red-700 pb-2">
+                <h2 class="text-2xl font-bold text-gray-800">ข่าวสารและประกาศ</h2>
+                <a href="#" class="text-sm font-bold text-red-700 hover:underline">ดูทั้งหมด →</a>
+            </div>
+            <div id="newsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <p class="text-center col-span-3 text-gray-400 py-10">กำลังโหลดข่าวสาร...</p>
+            </div>
+        </section>
+
+        <section id="projects" class="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">ผลงานที่ผ่านมา (Projects)</h2>
+                <p class="text-gray-500">ความภาคภูมิใจในทุกๆ งานที่เราสรรค์สร้าง</p>
+            </div>
+            <div id="projectsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                </div>
+        </section>
+
+        <section id="contact" class="pt-10">
+            <div class="max-w-4xl mx-auto bg-[#721c24] text-white rounded-[2rem] p-12 text-center shadow-2xl shadow-red-900/20">
+                <h2 class="text-3xl font-bold mb-6">เริ่มงานกับเราวันนี้</h2>
+                <p class="mb-10 text-red-100">หากคุณมีข้อสงสัยหรือต้องการสอบถามข้อมูลเพิ่มเติม สามารถติดต่อทีมงานได้ทันที</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="space-y-2">
+                        <div class="text-3xl">📞</div>
+                        <p class="font-bold">โทรศัพท์</p>
+                        <p class="text-sm text-red-100">02-xxx-xxxx</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl">✉️</div>
+                        <p class="font-bold">อีเมล</p>
+                        <p class="text-sm text-red-100">info@vstudio.com</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl">📍</div>
+                        <p class="font-bold">สถานที่</p>
+                        <p class="text-sm text-red-100">Bangkok, Thailand</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t py-12 text-center mt-20">
+        <div class="text-xl font-bold mb-4" style="color: var(--thai-red);">ว.<span>Studio</span></div>
+        <p class="text-xs text-gray-400">© 2026 ว.Studio. All rights reserved. | ความเป็นส่วนตัวและข้อกำหนด</p>
+    </footer>
+
+    <div id="profileModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate__animated animate__zoomIn animate__faster">
+            <div class="bg-[#721c24] px-6 py-4 flex justify-between items-center text-white">
+                <h3 class="text-lg font-bold">ตั้งค่าบัญชี ว.Studio</h3>
+                <button onclick="closeProfileModal()" class="text-2xl hover:text-gray-300">&times;</button>
+            </div>
+            <form id="profileUpdateForm" class="p-6 space-y-5">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="relative group">
+                        <img id="profilePreview" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover border-4 border-[#fdfaf5] shadow-md">
+                        <label for="avatarInput" class="absolute bottom-0 right-0 bg-[#b38b59] text-white p-1.5 rounded-full cursor-pointer hover:scale-110 shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                        </label>
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" class="hidden">
+                </div>
                 <div>
-                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Username</label>
-                    <input type="text" id="editUsername" class="w-full border-gray-200 border p-2.5 rounded-xl mt-1 focus:ring-2 focus:ring-[#b38b59] outline-none transition-all" placeholder="ชื่อผู้ใช้">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ชื่อผู้ใช้</label>
+                    <input type="text" id="editUsername" class="w-full border-gray-200 border p-2.5 rounded-xl mt-1 outline-none focus:ring-2 focus:ring-[#721c24]">
                 </div>
                 <div>
                     <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ชื่อ-นามสกุล</label>
-                    <input type="text" id="editFullName" class="w-full border-gray-200 border p-2.5 rounded-xl mt-1 focus:ring-2 focus:ring-[#b38b59] outline-none transition-all" placeholder="ชื่อจริง">
+                    <input type="text" id="editFullName" class="w-full border-gray-200 border p-2.5 rounded-xl mt-1 outline-none focus:ring-2 focus:ring-[#721c24]">
                 </div>
-                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">รหัสผ่านใหม่</label>
-                    <input type="password" id="newProfilePass" class="w-full border-gray-200 border p-2.5 rounded-xl mt-1 focus:ring-2 focus:ring-[#b38b59] outline-none transition-all" placeholder="••••••••">
-                </div>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <button type="button" onclick="closeProfileModal()" class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition">ยกเลิก</button>
-                <button type="submit" class="flex-1 py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">บันทึกข้อมูล</button>
-            </div>
-        </form>
+                <button type="submit" class="w-full py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg mt-4">บันทึกการเปลี่ยนแปลง</button>
+            </form>
+        </div>
     </div>
-</div>
 
-
-
-
-
-
-
-
-
-
-
-    
-
-    <header class="pt-40 pb-20 px-6 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">ยินดีต้อนรับสู่ <span style="color: var(--thai-red);">ว.Studio</span></h1>
-        <p class="text-gray-600 max-w-2xl mx-auto">ศูนย์รวมข้อมูลข่าวสาร ตารางกิจกรรม และระบบจัดการงานสำหรับพนักงานในองค์กร</p>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-6 pb-20">
-        <div class="flex items-center justify-between mb-8 border-b-2 border-red-700 pb-2">
-            <h2 class="text-2xl font-bold text-gray-800">ข่าวสารและประกาศล่าสุด</h2>
-            <span class="text-sm text-gray-500">อัปเดต: 9 เมษายน 2569</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition">
-                <div class="h-48 bg-gray-200 bg-[url('https://scontent.fbkk35-1.fna.fbcdn.net/v/t1.30497-1/85215299_479381239411958_7755129104415850496_n.jpg?stp=c379.0.1290.1290a_dst-jpg_s1290x1290_tt6&_nc_cat=1&ccb=1-7&_nc_sid=b6f7c7&_nc_ohc=qkb_p8lKwXIQ7kNvwHtHjfY&_nc_oc=AdoJLwOa5usmjIzPkgsnvH2t48CTb2syVdUfbIOhVyrzf1RF5z-z6TSY_JZU4yRB-se9qGL0jmytVKA7VFs8RvWN&_nc_zt=24&_nc_ht=scontent.fbkk35-1.fna&_nc_ss=7a3a8&oh=00_Af22PAxsmSn1Owh5SRdXiB8k6RQRynfC6BylH3qe2Wq7mw&oe=69DD0356')] bg-cover bg-center"></div>
-                <div class="p-6">
-                    <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">Title</span>
-                    <h3 class="font-bold text-lg mt-2 mb-3">Test</h3>
-                    <p class="text-sm text-gray-600 leading-relaxed">Desc</p>
-                    <button class="mt-4 text-sm font-bold text-amber-700 hover:underline">อ่านต่อ →</button>
-                </div>
-            </article>
-
-
-           
-        </div>
-    </main>
-
-    <footer class="bg-white border-t py-10 text-center">
-        <p class="text-xs text-gray-400">© 2026 ว.Studio. All rights reserved.</p>
-    </footer>
 </body>
 </html>
