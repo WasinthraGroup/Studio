@@ -219,3 +219,90 @@ function updateNavbarUI(session) {
         $('#navAction').html(`<a href="login.html" class="btn-thai">Login</a>`);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function openProfileModal() {
+    $('#profileModal').removeClass('hidden');
+    client.auth.getUser().then(async ({ data: { user } }) => {
+        const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
+        if (profile) {
+            $('#editFullName').val(profile.full_name);
+            if (profile.avatar_url) $('#profilePreview').attr('src', profile.avatar_url);
+        }
+    });
+}
+
+function closeProfileModal() {
+    $('#profileModal').addClass('hidden');
+}
+
+$('#profileUpdateForm').submit(async function(e) {
+    e.preventDefault();
+    const newName = $('#editFullName').val().trim();
+    const newPass = $('#newProfilePass').val();
+    const avatarFile = $('#avatarInput')[0].files[0];
+
+    Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+    try {
+        const { data: { user } } = await client.auth.getUser();
+        let avatarUrl = $('#profilePreview').attr('src');
+
+        if (avatarFile) {
+            const fileName = `${user.id}-${Date.now()}`;
+            const { data: uploadData, error: uploadError } = await client.storage
+                .from('avatars')
+                .upload(fileName, avatarFile);
+
+            if (!uploadError) {
+                const { data: { publicUrl } } = client.storage.from('avatars').getPublicUrl(fileName);
+                avatarUrl = publicUrl;
+            }
+        }
+
+        await client.from('profiles').update({ 
+            full_name: newName,
+            avatar_url: avatarUrl 
+        }).eq('id', user.id);
+
+        if (newPass) {
+            if (newPass.length < 6) throw new Error("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+            await client.auth.updateUser({ password: newPass });
+        }
+
+        Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อย', 'success').then(() => {
+            location.reload();
+        });
+
+    } catch (err) {
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+    }
+});
+
+$('#avatarInput').change(function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => $('#profilePreview').attr('src', e.target.result);
+        reader.readAsDataURL(file);
+    }
+});
