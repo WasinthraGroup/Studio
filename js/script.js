@@ -3,62 +3,62 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 $(document).ready(function() {
-    console.log("🚀 System: Login script initialized.");
-
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
         
         const userInput = $('#username').val().trim();
         const password = $('#password').val();
 
-        console.log(`🔍 Debug 1: Searching for user: ${userInput}`);
-
         try {
-            // STEP 1: ค้นหา Profile
             const { data: profile, error: findError } = await client
                 .from('profiles')
                 .select('id')
                 .eq('username', userInput)
                 .single();
 
-            if (findError) {
-                console.error("❌ Debug 1 Error:", findError.message);
-                console.error("Full Error Object:", findError);
+            if (findError || !profile) {
+                let errorMessage = 'ชื่อผู้ใช้งานไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
                 
-                let errorMsg = 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง';
-                if (findError.code === 'PGRST116') errorMsg = 'ไม่พบชื่อผู้ใช้งานนี้ในระบบ';
-                if (findError.code === '42501') errorMsg = 'ระบบถูกล็อค (RLS Error): โปรดติดต่อผู้ดูแลให้เปิดสิทธิ์ Select';
+                if (findError && findError.code === '42501') {
+                    errorMessage = 'ไม่สามารถเข้าถึงระบบได้ในขณะนี้ โปรดติดต่อผู้ดูแลระบบ';
+                }
 
-                Swal.fire({ icon: 'error', title: 'ไม่พบผู้ใช้งาน', text: errorMsg });
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ถูกต้อง',
+                    text: errorMessage,
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#d33'
+                });
                 return;
             }
 
-            console.log("✅ Debug 1 Success: Found Profile ID:", profile.id);
-
-            // STEP 2: พยายาม Login
             const email = userInput + "@gmail.com"; 
-            console.log(`🔐 Debug 2: Attempting Auth with: ${email}`);
 
-            const { data: authData, error: loginError } = await client.auth.signInWithPassword({
+            const { error: loginError } = await client.auth.signInWithPassword({
                 email: email,
                 password: password
             });
 
             if (loginError) {
-                console.error("❌ Debug 2 Error:", loginError.message);
                 Swal.fire({
                     icon: 'error',
-                    title: 'เข้าสู่ระบบไม่สำเร็จ',
-                    text: `สาเหตุ: ${loginError.message}`
+                    title: 'การเข้าสู่ระบบล้มเหลว',
+                    text: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง',
+                    confirmButtonText: 'ลองอีกครั้ง',
+                    confirmButtonColor: '#d33'
                 });
             } else {
-                console.log("🎉 Debug 2 Success: Login Granted!");
                 window.location.href = 'workshop.html';
             }
             
         } catch (err) {
-            console.error('💥 Critical System Error:', err);
-            Swal.fire('เกิดข้อผิดพลาด', 'เกิดปัญหาที่ระบบฝั่ง Client', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถดำเนินการได้ในขณะนี้ กรุณาลองใหม่ในภายหลัง',
+                confirmButtonText: 'ตกลง'
+            });
         }
     });
 });
