@@ -9,7 +9,12 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Kanit', sans-serif; background-color: var(--soft-cream); color: var(--text-main); }
+body { font-family: 'Kanit', sans-serif; background-color: var(--soft-cream); color: var(--text-main); padding-top: 80px; 
+     }
+
+#navAvatar {
+    box-shadow: 0 2px 8px rgba(179, 139, 89, 0.2);
+}
 
 /* Navigation */
 .main-header {
