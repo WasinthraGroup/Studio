@@ -63,42 +63,67 @@ $(document).ready(async function() {
                     confirmButtonColor: '#d33'
                 });
           } else {
-            const { data: { session } } = await client.auth.getSession();
-            const device = deviceHash();
-            const { data: dev } = await client
+
+            const { data: { session } } =
+                await client.auth.getSession();
+        
+            const device =
+                deviceHash();
+        
+            const { data: dev } =
+                await client
                     .from("devices")
                     .select("*")
                     .eq(
-                        "user_id",
-                        session.user.id
+                        "device_hash",
+                        device
                     )
-                    .single();
+                    .maybeSingle();
+        
             if (!dev) {
+        
                 await client
                     .from("devices")
                     .insert({
+        
                         user_id:
                             session.user.id,
+        
                         device_hash:
                             device
+        
                     });
+        
             } else {
+        
                 if (
-                    dev.device_hash
-                    !== device
+                    dev.user_id
+                    !== session.user.id
                 ) {
+        
                     await client
                         .auth
                         .signOut();
+        
                     Swal.fire({
+        
                         icon: "error",
-                        title: "ผิดพลาด",
-                        text: "บัญชีนี้ใช้ได้เฉพาะอุปกรณ์ที่สมัคร"
+        
+                        title: "ไม่อนุญาต",
+        
+                        text: "อุปกรณ์นี้ถูกใช้โดยบัญชีอื่นแล้ว"
+        
                     });
+        
                     return;
+        
                 }
+        
             }
-            window.location.href ='workshop.html';
+        
+            window.location.href =
+                'workshop.html';
+        
         }
         } catch (err) {
             Swal.fire({
