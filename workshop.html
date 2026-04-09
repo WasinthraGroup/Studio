@@ -3,55 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop | ว. Studio</title>
+    <title>เวิร์กชอป | ว.Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="js/script.js" defer></script>
 </head>
 <body class="hidden bg-[#fdfaf5]">
-    <nav class="main-header fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+    <nav class="main-header fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
-            <div class="text-xl font-bold" style="color: var(--thai-red);">THAI<span>WORK</span></div>
-            <div class="flex items-center gap-6">
-                <span id="userDisplay" class="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full"></span>
-                <button id="logoutBtn" class="text-sm text-red-700 font-semibold hover:bg-red-50 px-4 py-2 rounded-lg transition-all">ออกจากระบบ</button>
+            <div class="text-xl font-bold text-red-700">ว.<span>Studio</span></div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+                <a href="index.html" class="hover:text-red-700 transition">หน้าหลัก</a>
+                <a href="workshop.html" class="text-red-700">เวิร์กชอป</a>
+                <div id="hrLinks" class="hidden flex gap-8">
+                    <a href="#" class="hover:text-red-700 transition">จัดการสมาชิก</a>
+                    <a href="#" class="hover:text-red-700 transition">รายงานสรุป</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userDisplay" class="hidden md:block text-xs font-bold bg-gray-100 px-3 py-1 rounded-full"></span>
+                <button id="logoutBtn" class="text-xs font-bold text-red-600 border border-red-600 px-4 py-2 rounded-lg hover:bg-red-50">ออกจากระบบ</button>
             </div>
         </div>
     </nav>
 
-    <main class="pt-32 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 pb-12">
-        <aside id="hrMenu" class="hidden space-y-6">
-            <div class="card-thai bg-white p-6 shadow-sm border border-gray-100">
-                <h3 class="font-bold mb-6 text-lg border-b pb-2" style="color: var(--thai-red);">จัดการพนักงาน</h3>
-                <form id="addStaffForm" class="space-y-4">
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-400">ชื่อ-นามสกุล</label>
-                        <input type="text" id="newStaffName" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" required>
+    <main class="pt-28 max-w-7xl mx-auto px-6 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">ตารางเวลาของฉัน</h2>
+                        <div class="flex gap-2 text-xs">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-500 rounded-full"></span> ทำงาน</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-yellow-500 rounded-full"></span> ไม่ว่าง/ลา</span>
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-400">Username</label>
-                        <input type="text" id="newStaffUser" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" placeholder="ภาษาอังกฤษเท่านั้น" required>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-gray-400">รหัสผ่านเริ่มต้น</label>
-                        <input type="password" id="newStaffPass" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" required>
-                    </div>
-                    <button type="submit" class="w-full btn-thai text-sm mt-4 py-3">เพิ่มพนักงานใหม่</button>
-                </form>
-            </div>
-        </aside>
-
-        <section id="mainContent" class="md:col-span-3 space-y-6 transition-all duration-500">
-            <div class="card-thai bg-white p-6 shadow-sm min-h-[400px]">
-                <h2 class="text-2xl font-bold mb-8 border-l-4 border-red-700 pl-4" style="color: var(--thai-red);">ตารางงานและกิจกรรม</h2>
-                <div id="taskList" class="space-y-4">
-                    <p class="text-gray-400 italic">กำลังโหลดรายการ...</p>
+                    <div id="calendar" class="min-h-[600px]"></div>
                 </div>
             </div>
-        </section>
+
+            <div class="space-y-6">
+                <div id="hrAssignmentPanel" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+                    <h3 class="font-bold text-red-700 mb-4">สั่งงานใหม่ (HR Only)</h3>
+                    <form id="createTaskForm" class="space-y-4">
+                        <input type="text" id="taskTitle" placeholder="หัวข้อกูเกิลคลาสรูม" class="w-full border-b p-2 outline-none focus:border-red-600 text-sm" required>
+                        <textarea id="taskDesc" placeholder="คำอธิบาย/คำแนะนำ" class="w-full border p-2 rounded text-sm h-20 outline-none focus:border-red-600"></textarea>
+                        <input type="date" id="taskDue" class="w-full border p-2 rounded text-sm outline-none">
+                        <button type="submit" class="w-full bg-red-700 text-white py-2 rounded-lg text-sm font-bold">มอบหมายงาน</button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-4">งานที่ได้รับมอบหมาย</h3>
+                    <div id="assignmentList" class="space-y-4">
+                        <p class="text-center text-gray-400 text-sm py-10 italic">กำลังโหลดรายการงาน...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </body>
 </html>
