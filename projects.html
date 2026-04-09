@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผลงานของเรา | ว.Studio</title>
+    <link rel="icon" href="Pics/Logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/script.js" defer></script>
+    <style>
+        :root { --thai-red: #721c24; }
+        .project-card:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-[#fdfaf5]">
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+            <div class="flex items-center gap-10">
+                <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='index.html'" style="color: var(--thai-red);">
+                    ว.<span>Studio</span>
+                </div>
+                <div id="desktopNav" class="hidden md:flex items-center gap-8">
+                    </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div id="navAction" class="relative"></div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t px-6 py-4 shadow-xl">
+            <div id="mobileMenuLinks" class="flex flex-col gap-4"></div>
+        </div>
+    </nav>
+
+    <header class="pt-40 pb-16 px-6 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 animate__animated animate__fadeInDown">
+            Our <span style="color: var(--thai-red);">Projects</span>
+        </h1>
+        <p class="text-gray-500 max-w-2xl mx-auto animate__animated animate__fadeIn">
+            รวมผลงานและความภาคภูมิใจของ ว.Studio ที่เราตั้งใจรังสรรค์ออกมาเพื่อตอบโจทย์ทุกจินตนาการ
+        </p>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 mb-12 flex flex-wrap justify-center gap-4 animate__animated animate__fadeInUp">
+        <button class="px-6 py-2 rounded-full bg-[#721c24] text-white font-bold text-sm shadow-lg">ทั้งหมด</button>
+        <button class="px-6 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 font-bold text-sm border transition-all">Digital Art</button>
+        <button class="px-6 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 font-bold text-sm border transition-all">Branding</button>
+        <button class="px-6 py-2 rounded-full bg-white text-gray-600 hover:bg-gray-100 font-bold text-sm border transition-all">Photography</button>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-6 pb-24">
+        <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="col-span-full text-center py-20 text-gray-400">
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-red-700 rounded-full mb-4" role="status"></div>
+                <p>กำลังดึงข้อมูลผลงาน...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t py-12 text-center">
+        <div class="text-xl font-bold mb-4" style="color: var(--thai-red);">ว.<span>Studio</span></div>
+        <p class="text-xs text-gray-400">© 2026 ว.Studio. All rights reserved.</p>
+    </footer>
+
+    <div id="profileModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate__animated animate__zoomIn animate__faster">
+            <div class="bg-[#721c24] px-6 py-4 flex justify-between items-center text-white">
+                <h3 class="text-lg font-bold">ตั้งค่าบัญชี ว.Studio</h3>
+                <button onclick="closeProfileModal()" class="text-2xl hover:text-gray-300">&times;</button>
+            </div>
+            <form id="profileUpdateForm" class="p-6 space-y-5">
+                <div class="flex flex-col items-center gap-3">
+                    <img id="profilePreview" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover border-4 border-[#fdfaf5]">
+                    <input type="file" id="avatarInput" accept="image/*" class="hidden">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 tracking-widest uppercase">ชื่อผู้ใช้</label>
+                    <input type="text" id="editUsername" class="w-full border p-2.5 rounded-xl mt-1 outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg">บันทึกข้อมูล</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // เรียกโหลดเฉพาะข้อมูลประเภท Projects เมื่อหน้าจอพร้อม
+        $(document).ready(() => {
+            if (typeof loadContents === 'function') {
+                loadContents('projects', 'projectsGrid');
+            }
+        });
+    </script>
+</body>
+</html>
