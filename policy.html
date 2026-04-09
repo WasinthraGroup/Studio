@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ความเป็นส่วนตัวและข้อกำหนด | ว.Studio</title>
+    <link rel="icon" href="Pics/Logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/script.js" defer></script>
+    <style>
+        :root { --thai-red: #721c24; }
+        body { background-color: #fdfaf5; color: #4a4a4a; }
+        .policy-content h2 { 
+            color: var(--thai-red); 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin-top: 2rem; 
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--thai-red);
+            padding-left: 1rem;
+        }
+        .policy-content p { margin-bottom: 1rem; line-height: 1.8; }
+    </style>
+</head>
+<body>
+
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+            <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='index.html'" style="color: var(--thai-red);">
+                ว.<span>Studio</span>
+            </div>
+            <div id="desktopNav" class="hidden md:flex items-center gap-8"></div>
+            <div id="navAction"></div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20 px-6">
+        <div class="max-w-4xl mx-auto bg-white p-8 md:p-16 rounded-[2.5rem] shadow-sm border border-gray-100 animate__animated animate__fadeIn">
+            
+            <header class="text-center mb-12">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">ความเป็นส่วนตัวและข้อกำหนด</h1>
+                <p class="text-gray-400">ปรับปรุงล่าสุด: 9 เมษายน 2026</p>
+                <hr class="mt-8 border-gray-100">
+            </header>
+
+            <div class="policy-content text-gray-600">
+    <header class="border-b-2 border-stone-100 pb-4">
+        <h2 class="!mt-0">นโยบายความเป็นส่วนตัว (Privacy Policy)</h2>
+    </header>
+    
+    <section>
+        <h3>1.1 ข้อมูลส่วนบุคคลที่เราเก็บรวบรวม</h3>
+        <p>ว.Studio จะเก็บรวบรวมข้อมูลเท่าที่จำเป็นตามวัตถุประสงค์ในการใช้งานแพลตฟอร์ม ดังนี้:</p>
+        <ul class="list-disc ml-6 space-y-2 mb-4">
+            <li><strong>ข้อมูลระบุตัวตน:</strong> ชื่อ-นามสกุล, ชื่อผู้ใช้งาน (Username), และรูปภาพประจำตัว (Avatar)</li>
+            <li><strong>ข้อมูลการติดต่อ:</strong> ที่อยู่อีเมล (Email Address)</li>
+            <li><strong>ข้อมูลทางเทคนิค:</strong> หมายเลขไอพี (IP Address), คุกกี้ (Cookies), และพฤติกรรมการใช้งานบนเว็บไซต์</li>
+        </ul>
+    </section>
+
+    <section>
+        <h3>1.2 วัตถุประสงค์ในการประมวลผลข้อมูล</h3>
+        <p>เราประมวลผลข้อมูลของคุณภายใต้ฐานทางกฎหมาย (Lawful Basis) ดังนี้:</p>
+        <ul class="list-disc ml-6 space-y-2 mb-4">
+            <li><strong>ฐานสัญญา (Contract):</strong> เพื่อสร้างและจัดการบัญชีผู้ใช้งาน ให้คุณเข้าถึงระบบ Workshop และฟีเจอร์ต่างๆ ได้อย่างสมบูรณ์</li>
+            <li><strong>ฐานประโยชน์อันชอบธรรม (Legitimate Interest):</strong> เพื่อปรับปรุงประสิทธิภาพการทำงานของเว็บไซต์ และรักษาความปลอดภัยของระบบ</li>
+            <li><strong>ฐานความยินยอม (Consent):</strong> ในกรณีการส่งข้อมูลข่าวสารทางการตลาดหรือกิจกรรมพิเศษ (หากมี)</li>
+        </ul>
+    </section>
+
+    <section>
+        <h3>1.3 การเก็บรักษาและระยะเวลาในการเก็บข้อมูล</h3>
+        <p>เราจะเก็บรักษาข้อมูลส่วนบุคคลของคุณไว้ในระบบ Cloud (Supabase) ที่มีความปลอดภัยสูง ข้อมูลจะถูกเก็บไว้ตราบเท่าที่คุณยังเป็นสมาชิกของ ว.Studio หรือจนกว่าคุณจะแจ้งขอลบข้อมูล ยกเว้นกรณีที่กฎหมายกำหนดให้ต้องเก็บรักษาไว้เป็นระยะเวลาที่นานกว่านั้น</p>
+    </section>
+
+    <section>
+        <h3>1.4 สิทธิของเจ้าของข้อมูลส่วนบุคคล (Your Rights)</h3>
+        <p>ตามกฎหมาย PDPA คุณมีสิทธิในการจัดการข้อมูลของคุณ ดังนี้:</p>
+        <ul class="list-disc ml-6 space-y-2 mb-4">
+            <li>สิทธิในการเข้าถึงและขอรับสำเนาข้อมูลส่วนบุคคล</li>
+            <li>สิทธิในการขอให้แก้ไขข้อมูลให้ถูกต้องและเป็นปัจจุบัน</li>
+            <li>สิทธิในการขอให้ลบหรือทำลายข้อมูล (Right to be Forgotten)</li>
+            <li>สิทธิในการถอนความยินยอมในการประมวลผลข้อมูล</li>
+        </ul>
+    </section>
+
+    <header class="border-b-2 border-stone-100 pb-4 mt-12">
+        <h2 class="!mt-0">ข้อกำหนดและเงื่อนไขการใช้งาน (Terms & Conditions)</h2>
+    </header>
+
+    <section>
+        <h3>2.1 การยอมรับข้อกำหนด</h3>
+        <p>การเข้าถึงและใช้งาน ว.Studio ถือว่าคุณได้อ่าน เข้าใจ และตกลงที่จะผูกพันตามข้อกำหนดเหล่านี้ทุกประการ หากคุณไม่ตกลงตามเงื่อนไข กรุณาระงับการใช้งานแพลตฟอร์มทันที</p>
+    </section>
+
+    <section>
+        <h3>2.2 ทรัพย์สินทางปัญญา</h3>
+        <p>เนื้อหาทั้งหมดบนเว็บไซต์นี้ รวมถึงแต่ไม่จำกัดเพียง ข้อความ, รูปภาพ, โลโก้, งานศิลปะดิจิทัล, และโค้ดโปรแกรม เป็นทรัพย์สินทางปัญญาของ <strong>วศินทราสตูดิโอ</strong> หรือผู้ได้รับอนุญาต ห้ามมิให้ทำซ้ำ ดัดแปลง เผยแพร่ หรือใช้ประโยชน์ในเชิงพาณิชย์โดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษร</p>
+    </section>
+
+    <section>
+        <h3>2.3 ข้อจำกัดความรับผิดชอบ</h3>
+        <p>ว.Studio มุ่งมั่นที่จะให้ข้อมูลที่ถูกต้องและเป็นปัจจุบัน อย่างไรก็ตาม เราไม่รับประกันความสมบูรณ์หรือความถูกต้องทั้งหมดของเนื้อหา และจะไม่รับผิดชอบต่อความเสียหายใดๆ ที่เกิดจากการใช้งานหรือการไม่สามารถเข้าถึงเว็บไซต์ได้ไม่ว่าในกรณีใดก็ตาม</p>
+    </section>
+
+    <section>
+        <h3>2.4 การระงับการใช้งาน</h3>
+        <p>เราขอสงวนสิทธิ์ในการระงับ หรือยกเลิกบัญชีผู้ใช้งานของคุณโดยไม่ต้องแจ้งให้ทราบล่วงหน้า หากพบว่ามีการละเมิดข้อกำหนดการใช้งาน หรือกระทำการใดๆ ที่ผิดกฎหมาย หรือส่งผลกระทบต่อความมั่นคงของระบบ</p>
+    </section>
+
+    <section>
+        <h3>2.5 กฎหมายที่ใช้บังคับ</h3>
+        <p>ข้อกำหนดนี้จะถูกควบคุมและตีความตามกฎหมายของประเทศไทย และข้อพิพาทใดๆ ที่เกิดขึ้นจะถูกตัดสินโดยศาลที่มีอำนาจในประเทศไทย</p>
+    </section>
+</div>
+
+<style>
+    .policy-content h3 {
+        color: #333;
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .policy-content ul {
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+            <div class="mt-12 text-center">
+                <a href="index.html" class="inline-block px-8 py-3 bg-[#721c24] text-white rounded-full font-bold shadow-lg hover:opacity-90 transition-all">
+                    กลับสู่หน้าแรก
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-10 text-center text-xs text-gray-400">
+        © 2026 วศินทราสตูดิโอ. All rights reserved.
+    </footer>
+
+</body>
+</html>
