@@ -21,12 +21,16 @@
     </div>
 
     <script>
+    const SUPABASE_URL = 'https://fucrcbuqbpnbftyljqgi.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_u6oFceXhu-odGTPieNA0pw_mk9uoXwJ';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
         const userInput = $('#username').val();
         const password = $('#password').val();
 
-        // 1. ค้นหา Email ที่ผูกกับ Username นี้ในตาราง Profiles
+        // ตอนนี้ client จะถูกเรียกใช้งานได้ถูกต้อง
         const { data: profile, error: findError } = await client
             .from('profiles')
             .select('id')
