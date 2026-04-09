@@ -84,12 +84,20 @@ $(document).ready(async function() {
 });
 
 async function updateNavbarUI(session) {
-    if (session && (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/'))) {
-        $('#navAction').html(`
-            <div class="flex items-center gap-4">
-                <a href="workshop.html" class="text-sm font-bold text-amber-800">ไปหน้า Workshop</a>
-                <button id="logoutBtn" class="btn-thai px-4 py-2 rounded-lg text-xs transition-all">ออกจากระบบ</button>
+    const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+    
+    if (session) {
+        let navHtml = `
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="text-sm font-medium hover:text-red-700">หน้าหลัก</a>
+                <a href="workshop.html" class="text-sm font-medium hover:text-red-700">เวิร์กชอป</a>
+                <button id="logoutBtn" class="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-xs font-bold border border-red-200 hover:bg-red-100 transition-all">ออกจากระบบ</button>
             </div>
+        `;
+        $('#navAction').html(navHtml);
+    } else if (isHome) {
+        $('#navAction').html(`
+            <a href="login.html" class="bg-red-700 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-red-800 transition-all shadow-md">เข้าสู่ระบบพนักงาน</a>
         `);
     }
 }
@@ -103,7 +111,7 @@ async function initWorkshop(session) {
 
     if (profileError || !profile) return;
 
-    $('#userDisplay').text(`ผู้ใช้งาน: ${profile.full_name}`);
+    $('#userDisplay').text(`ผู้ใช้งาน: ${profile.full_name}`).removeClass('hidden');
 
     if (profile.role === 'hr') {
         $('#hrMenu').removeClass('hidden');
@@ -172,14 +180,14 @@ function renderCalendar(userId, role) {
                 query = query.eq('user_id', userId);
             }
             const { data } = await query;
-            const events = data.map(e => ({
+            const events = data ? data.map(e => ({
                 id: e.id,
                 title: e.title,
                 start: e.start_time,
                 end: e.end_time,
                 backgroundColor: e.color_type,
                 borderColor: 'transparent'
-            }));
+            })) : [];
             successCallback(events);
         }
     });
@@ -197,22 +205,22 @@ async function loadAssignments() {
     taskContainer.empty();
 
     if (!assignments || assignments.length === 0) {
-        taskContainer.append('<p class="text-gray-400 text-center py-10 italic">ไม่มีรายการงานในขณะนี้...</p>');
+        taskContainer.append('<p class="text-gray-400 text-center py-10 italic text-sm">ไม่มีรายการงานในขณะนี้...</p>');
         return;
     }
 
     assignments.forEach(task => {
         taskContainer.append(`
-            <div class="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition shadow-sm">
+            <div class="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition shadow-sm bg-white">
                 <div class="flex justify-between items-start">
-                    <h4 class="font-bold text-gray-800">${task.title}</h4>
-                    <span class="text-[10px] font-bold text-red-600 uppercase">
-                        Due: ${new Date(task.due_date).toLocaleDateString('th-TH')}
+                    <h4 class="font-bold text-gray-800 text-sm">${task.title}</h4>
+                    <span class="text-[10px] font-bold text-red-600 border border-red-100 px-2 py-0.5 rounded">
+                        DUE: ${new Date(task.due_date).toLocaleDateString('th-TH')}
                     </span>
                 </div>
-                <p class="text-xs text-gray-600 mt-2">${task.description || '-'}</p>
+                <p class="text-xs text-gray-500 mt-2 line-clamp-2">${task.description || '-'}</p>
                 <div class="mt-3 pt-3 border-t flex justify-end">
-                    <button class="text-xs font-bold text-blue-600 hover:underline">ส่งงาน</button>
+                    <button class="text-xs font-bold text-blue-600 hover:text-blue-800 transition">ส่งงานเข้า Classroom</button>
                 </div>
             </div>
         `);
