@@ -282,6 +282,33 @@ async function loadAssignments() {
 }
 
 function setupHRFeatures() {
+
+    $('#invitePanel').removeClass('hidden');
+    $('#createInviteForm').off('submit').on('submit', async function (e) {
+        e.preventDefault();
+        const expire = $('#inviteExpire').val();
+        const token = crypto.randomUUID().replaceAll('-', '');
+        await client
+            .from("invites")
+            .insert({
+                token: token,
+                expires_at: expire
+            });
+        const link =
+            window.location.origin +
+            "/register.html?token=" + token;
+        $('#inviteResult').html(`
+    <div class="bg-gray-50 p-3 rounded">
+    <p class="mb-2">ลิงค์:</p>
+    <input
+    value="${link}"
+    class="w-full border p-2 text-xs"
+    readonly>
+    </div>
+    `);
+    });
+
+
     $('#createTaskForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
         const taskData = {
