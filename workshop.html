@@ -9,175 +9,49 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/script.js" defer></script>
 </head>
 <body class="hidden bg-[#fdfaf5]">
-    <nav class="main-header">
+    <nav class="main-header fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
             <div class="text-xl font-bold" style="color: var(--thai-red);">THAI<span>WORK</span></div>
             <div class="flex items-center gap-6">
-                <span id="userDisplay" class="text-sm font-medium text-gray-600"></span>
-                <button id="logoutBtn" class="text-sm text-red-700 font-semibold hover:opacity-70 transition">ออกจากระบบ</button>
+                <span id="userDisplay" class="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full"></span>
+                <button id="logoutBtn" class="text-sm text-red-700 font-semibold hover:bg-red-50 px-4 py-2 rounded-lg transition-all">ออกจากระบบ</button>
             </div>
         </div>
     </nav>
 
-    <main class="pt-32 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <main class="pt-32 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 pb-12">
         <aside id="hrMenu" class="hidden space-y-6">
-            <div class="card-thai bg-white p-6 shadow-sm">
-                <h3 class="font-bold mb-4 text-lg" style="color: var(--thai-red);">จัดการพนักงาน</h3>
+            <div class="card-thai bg-white p-6 shadow-sm border border-gray-100">
+                <h3 class="font-bold mb-6 text-lg border-b pb-2" style="color: var(--thai-red);">จัดการพนักงาน</h3>
                 <form id="addStaffForm" class="space-y-4">
                     <div>
-                        <label class="text-xs uppercase tracking-wider text-gray-500">ชื่อ-นามสกุล</label>
-                        <input type="text" id="newStaffName" class="w-full border-b border-gray-300 p-2 focus:border-amber-600 outline-none transition" required>
+                        <label class="text-[10px] uppercase font-bold text-gray-400">ชื่อ-นามสกุล</label>
+                        <input type="text" id="newStaffName" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" required>
                     </div>
                     <div>
-                        <label class="text-xs uppercase tracking-wider text-gray-500">Username</label>
-                        <input type="text" id="newStaffUser" class="w-full border-b border-gray-300 p-2 focus:border-amber-600 outline-none transition" placeholder="ภาษาอังกฤษเท่านั้น" required>
+                        <label class="text-[10px] uppercase font-bold text-gray-400">Username</label>
+                        <input type="text" id="newStaffUser" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" placeholder="ภาษาอังกฤษเท่านั้น" required>
                     </div>
                     <div>
-                        <label class="text-xs uppercase tracking-wider text-gray-500">รหัสผ่านเริ่มต้น</label>
-                        <input type="password" id="newStaffPass" class="w-full border-b border-gray-300 p-2 focus:border-amber-600 outline-none transition" required>
+                        <label class="text-[10px] uppercase font-bold text-gray-400">รหัสผ่านเริ่มต้น</label>
+                        <input type="password" id="newStaffPass" class="w-full border-b border-gray-200 p-2 focus:border-amber-600 outline-none transition" required>
                     </div>
-                    <button type="submit" class="w-full btn-thai text-sm mt-2">เพิ่มพนักงานใหม่</button>
+                    <button type="submit" class="w-full btn-thai text-sm mt-4 py-3">เพิ่มพนักงานใหม่</button>
                 </form>
             </div>
         </aside>
 
         <section id="mainContent" class="md:col-span-3 space-y-6 transition-all duration-500">
-            <div class="card-thai bg-white p-6 reveal active">
-                <h2 class="text-2xl font-bold mb-6" style="color: var(--thai-red);">ตารางงานและกิจกรรม</h2>
+            <div class="card-thai bg-white p-6 shadow-sm min-h-[400px]">
+                <h2 class="text-2xl font-bold mb-8 border-l-4 border-red-700 pl-4" style="color: var(--thai-red);">ตารางงานและกิจกรรม</h2>
                 <div id="taskList" class="space-y-4">
-                    <p class="text-gray-400 italic">กำลังโหลดข้อมูล...</p>
+                    <p class="text-gray-400 italic">กำลังโหลดรายการ...</p>
                 </div>
             </div>
         </section>
     </main>
-
-    <script>
-        const SUPABASE_URL = 'https://fucrcbuqbpnbftyljqgi.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3JjYnVxYnBuYmZ0eWxqcWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Nzc1MTIsImV4cCI6MjA5MTI1MzUxMn0.XXKIgZ_9Ciciq3qfgINK48J70HbunRyP28p1MiIv6To';
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function initWorkshop() {
-            const { data: { session }, error: authError } = await client.auth.getSession();
-            
-            if (!session || authError) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // ดึงข้อมูลโปรไฟล์เพื่อตรวจสอบ Role
-            const { data: profile, error: profileError } = await client
-                .from('profiles')
-                .select('full_name, role, username')
-                .eq('id', session.user.id)
-                .single();
-
-            if (profileError || !profile) {
-                console.error('Profile load error:', profileError);
-                return;
-            }
-
-            $('#userDisplay').text(`ผู้ใช้งาน: ${profile.full_name}`);
-
-            // ถ้าเป็น HR ให้ปรับ Layout และแสดงเมนูจัดการพนักงาน
-            if (profile.role === 'hr') {
-                $('#mainContent').removeClass('md:col-span-3').addClass('md:col-span-2');
-                $('#hrMenu').removeClass('hidden');
-                setupHRFeatures();
-            }
-
-            loadAssignments();
-            $('body').removeClass('hidden');
-        }
-
-        async function loadAssignments() {
-            const { data: assignments, error } = await client
-                .from('assignments')
-                .select('*')
-                .order('due_date', { ascending: true });
-
-            const taskContainer = $('#taskList');
-            taskContainer.empty();
-
-            if (error || !assignments || assignments.length === 0) {
-                taskContainer.append('<p class="text-gray-400 italic">ไม่มีรายการงานในขณะนี้...</p>');
-                return;
-            }
-
-            assignments.forEach(task => {
-                taskContainer.append(`
-                    <div class="p-4 border-l-4 border-amber-400 bg-gray-50 rounded-r-lg hover:shadow-md transition duration-300">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-gray-800">${task.title}</h4>
-                            <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded font-bold uppercase">
-                                ${new Date(task.due_date).toLocaleDateString('th-TH')}
-                            </span>
-                        </div>
-                        <p class="text-sm text-gray-600 mt-1">${task.description || '-'}</p>
-                    </div>
-                `);
-            });
-        }
-
-        function setupHRFeatures() {
-            $('#addStaffForm').off('submit').on('submit', async function(e) {
-                e.preventDefault();
-                
-                const fullName = $('#newStaffName').val().trim();
-                const username = $('#newStaffUser').val().trim().toLowerCase();
-                const password = $('#newStaffPass').val();
-                const email = `${username}@gmail.com`; // ต้องตรงกับระบบ Login
-
-                Swal.fire({ 
-                    title: 'กำลังดำเนินการ', 
-                    text: 'กรุณารอสักครู่...',
-                    allowOutsideClick: false, 
-                    didOpen: () => Swal.showLoading() 
-                });
-
-                // 1. ลงทะเบียนในระบบ Auth
-                const { data: authData, error: authError } = await client.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: { data: { full_name: fullName } }
-                });
-
-                if (authError) {
-                    Swal.fire('เกิดข้อผิดพลาด', authError.message, 'error');
-                    return;
-                }
-
-                // 2. อัปเดตข้อมูล Profile (กรณี Trigger ทำงานช้าหรือต้องการทับค่า)
-                const { error: profileError } = await client
-                    .from('profiles')
-                    .update({ 
-                        full_name: fullName, 
-                        username: username,
-                        role: 'staff' 
-                    })
-                    .eq('id', authData.user.id);
-
-                if (profileError) {
-                    Swal.fire('ข้อควรระวัง', 'สร้างบัญชีสำเร็จ แต่การบันทึกโปรไฟล์มีปัญหา โปรดตรวจสอบ Database', 'warning');
-                } else {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'เพิ่มพนักงานสำเร็จ',
-                        text: `พนักงานสามารถใช้ Username: ${username} ในการเข้างานได้ทันที`,
-                        confirmButtonColor: '#b43432'
-                    });
-                    this.reset();
-                }
-            });
-        }
-
-        $('#logoutBtn').on('click', async () => {
-            await client.auth.signOut();
-            window.location.href = 'login.html';
-        });
-
-        $(document).ready(initWorkshop);
-    </script>
 </body>
 </html>
