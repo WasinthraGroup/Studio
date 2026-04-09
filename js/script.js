@@ -149,7 +149,56 @@ async function loadAssignments() {
     });
 }
 
+
+
+
+
+
+
+
+async function loadContents(type, containerId) {
+    const { data, error } = await client
+        .from('contents')
+        .select('*')
+        .eq('type', type)
+        .order('created_at', { ascending: false });
+
+    if (error) return;
+
+    const container = $(`#${containerId}`);
+    container.empty();
+
+    data.forEach(item => {
+        container.append(`
+            <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
+                <div class="h-48 bg-gray-200 bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
+                <div class="p-6">
+                    <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">${item.type}</span>
+                    <h3 class="font-bold text-lg mt-2 mb-3">${item.title}</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed line-clamp-3">${item.description}</p>
+                    <a href="${item.link_url || '#'}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline">อ่านต่อ →</a>
+                </div>
+            </article>
+        `);
+    });
+}
+
+async function addContent(formData) {
+    const { error } = await client.from('contents').insert([formData]);
+    if (!error) {
+        Swal.fire('สำเร็จ!', 'เพิ่มเนื้อหาเรียบร้อยแล้ว', 'success');
+        location.reload();
+    }
+}
+
+
+
+
+
+
+
 function setupHRFeatures() {
+    $('#hrContentPanel').removeClass('hidden');
     $('#invitePanel, #hrAssignmentPanel').removeClass('hidden');
    $('#createInviteForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
