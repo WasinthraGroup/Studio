@@ -204,7 +204,7 @@ async function loadContents(type, containerId) {
 
     data.forEach(item => {
     const linkButton = (item.link_url && item.link_url !== '#') 
-        ? `<a href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` 
+        ? `<a target="_blank" href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` 
         : '';
 
     container.append(`
