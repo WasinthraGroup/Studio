@@ -30,18 +30,43 @@ $(document).ready(async function() {
         e.preventDefault();
         const userInput = $('#username').val().trim();
         const password = $('#password').val();
+    
+        if (!userInput || !password) {
+            Swal.fire({ icon: 'info', title: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+            return;
+        }
+    
+        Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
+    
         try {
-            const { data: profile } = await client.from('profiles').select('id').eq('username', userInput).single();
-            if (!profile) {
-                Swal.fire({ icon: 'warning', title: 'ไม่พบชื่อผู้ใช้งาน' });
-                return;
+            let loginEmail = '';
+    
+            if (userInput.includes('@')) {
+                loginEmail = userInput;
+            } else {
+                loginEmail = userInput + "@gmail.com";
             }
-            const { error } = await client.auth.signInWithPassword({
-                email: userInput + "@gmail.com",
+    
+            // ลอง Login
+            const { error: authError } = await client.auth.signInWithPassword({
+                email: loginEmail,
                 password: password
             });
-            if (error) { Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง' }); }
-            else { window.location.href = 'workshop.html'; }
+    
+            if (authError) {
+                if (!userInput.includes('@')) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'เข้าสู่ระบบไม่สำเร็จ', 
+                        text: 'หากคุณไม่ได้ใช้ Gmail โปรดระบุ Email เต็มในการเข้าใช้งาน' 
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง' });
+                }
+            } else {
+                window.location.href = 'workshop.html';
+            }
+    
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง' });
         }
