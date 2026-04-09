@@ -48,10 +48,9 @@ async function initWorkshop(session) {
     const { data: profile, error } = await client.from('profiles').select('*').eq('id', session.user.id).single();
     if (error || !profile) return;
 
-    $('#userDisplay').text("ผู้ใช้งาน: " + profile.full_name).removeClass('hidden');
+    $('#userDisplay').text("ผู้ใช้งาน: " + (profile.full_name || profile.username)).removeClass('hidden');
 
     if (profile.role === 'hr') {
-        $('#hrAssignmentPanel').removeClass('hidden');
         setupHRFeatures();
     }
 
@@ -151,30 +150,29 @@ async function loadAssignments() {
 }
 
 function setupHRFeatures() {
-    $('#invitePanel').removeClass('hidden');
-   $('#createInviteForm').off('submit').on('submit', async function(e) {
-    e.preventDefault();
-    const expireInput = $('#inviteExpire').val(); 
-    if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
-    const expireDate = new Date(expireInput).toISOString();
-    const token = crypto.randomUUID().replaceAll('-', '');
-    const { error } = await client.from("invites").insert({ 
-        token: token, 
-        expires_at: expireDate 
-    });
+    $('#invitePanel, #hrAssignmentPanel').removeClass('hidden');
+    $('#createInviteForm').off('submit').on('submit', async function(e) {
+        e.preventDefault();
+        const expireInput = $('#inviteExpire').val(); 
+        if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
+        const expireDate = new Date(expireInput).toISOString();
+        const token = crypto.randomUUID().replaceAll('-', '');
+        const { error } = await client.from("invites").insert({ 
+            token: token, 
+            expires_at: expireDate 
+        });
 
-    if (!error) {
-        const link = window.location.origin + "/register.html?token=" + token;
-        $('#inviteResult').html(`
-            <p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p>
-            <input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()">
-            <p class="text-[10px] text-gray-400 mt-1">*ลิงก์จะหมดอายุเมื่อ: ${new Date(expireDate).toLocaleString('th-TH')}</p>
-        `);
-    } else {
-        console.error(error);
-        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถสร้างลิงก์ได้", "error");
-    }
-});
+        if (!error) {
+            const link = window.location.origin + "/register.html?token=" + token;
+            $('#inviteResult').html(`
+                <p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p>
+                <input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()">
+                <p class="text-[10px] text-gray-400 mt-1">*หมดอายุ: ${new Date(expireDate).toLocaleString('th-TH')}</p>
+            `);
+        } else {
+            Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถสร้างลิงก์ได้", "error");
+        }
+    });
 
     $('#createTaskForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
@@ -190,7 +188,10 @@ async function initRegister() {
     if (!token) { Swal.fire("ลิงก์ไม่ถูกต้อง"); return; }
 
     const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
-    if (!invite || invite.used || new Date(invite.expires_at) < new Date()) {
+    const expireTime = invite ? new Date(invite.expires_at).getTime() : 0;
+    const currentTime = new Date().getTime();
+
+    if (!invite || invite.used || expireTime < currentTime) {
         Swal.fire("ลิงก์หมดอายุหรือถูกใช้ไปแล้ว"); return;
     }
 
@@ -211,19 +212,8 @@ async function initRegister() {
     });
 }
 
-
-
-
-
-
-
-
-
-
-
 async function updateNavbarUI(session) {
     const navAction = $('#navAction');
-    
     if (session) {
         const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
         const avatar = profile?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
@@ -235,10 +225,9 @@ async function updateNavbarUI(session) {
                     <span class="text-sm font-bold text-gray-700 hidden md:block">${name}</span>
                     <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-[#b38b59]/20">
                 </button>
-
                 <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[1001]">
-                    <div class="px-4 py-2 border-bottom mb-2">
-                         <p class="text-[10px] font-bold text-gray-400 uppercase">จัดการบัญชี</p>
+                    <div class="px-4 py-2 border-b mb-2">
+                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">จัดการบัญชี</p>
                     </div>
                     <button onclick="openProfileModal()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
                         <span>⚙️</span> ตั้งค่าโปรไฟล์
@@ -251,9 +240,7 @@ async function updateNavbarUI(session) {
             </div>
         `);
     } else {
-        navAction.html(`
-            <a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm font-semibold transition-all">เข้าสู่ระบบพนักงาน</a>
-        `);
+        navAction.html(`<a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm font-semibold transition-all">เข้าสู่ระบบพนักงาน</a>`);
     }
 }
 
@@ -267,41 +254,26 @@ $(window).on('click', function(e) {
     }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function openProfileModal() {
-    $('#profileModal').removeClass('hidden');
+    $('#profileDropdown').addClass('hidden');
+    $('#profileModal').removeClass('hidden').css('display', 'flex');
     client.auth.getUser().then(async ({ data: { user } }) => {
         const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
         if (profile) {
-            $('#editFullName').val(profile.full_name);
+            $('#editUsername').val(profile.username || '');
+            $('#editFullName').val(profile.full_name || '');
             if (profile.avatar_url) $('#profilePreview').attr('src', profile.avatar_url);
         }
     });
 }
 
 function closeProfileModal() {
-    $('#profileModal').addClass('hidden');
+    $('#profileModal').addClass('hidden').css('display', 'none');
 }
 
 $('#profileUpdateForm').submit(async function(e) {
     e.preventDefault();
+    const newUsername = $('#editUsername').val().trim().toLowerCase();
     const newName = $('#editFullName').val().trim();
     const newPass = $('#newProfilePass').val();
     const avatarFile = $('#avatarInput')[0].files[0];
@@ -314,30 +286,25 @@ $('#profileUpdateForm').submit(async function(e) {
 
         if (avatarFile) {
             const fileName = `${user.id}-${Date.now()}`;
-            const { data: uploadData, error: uploadError } = await client.storage
-                .from('avatars')
-                .upload(fileName, avatarFile);
-
+            const { error: uploadError } = await client.storage.from('avatars').upload(fileName, avatarFile);
             if (!uploadError) {
                 const { data: { publicUrl } } = client.storage.from('avatars').getPublicUrl(fileName);
                 avatarUrl = publicUrl;
             }
         }
 
-        await client.from('profiles').update({ 
-            full_name: newName,
-            avatar_url: avatarUrl 
-        }).eq('id', user.id);
+        const updateData = { full_name: newName, avatar_url: avatarUrl };
+        if (newUsername) updateData.username = newUsername;
+
+        const { error: updateError } = await client.from('profiles').update(updateData).eq('id', user.id);
+        if (updateError) throw updateError;
 
         if (newPass) {
             if (newPass.length < 6) throw new Error("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
             await client.auth.updateUser({ password: newPass });
         }
 
-        Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อย', 'success').then(() => {
-            location.reload();
-        });
-
+        Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อย', 'success').then(() => { location.reload(); });
     } catch (err) {
         Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
     }
