@@ -1,15 +1,17 @@
-<!DOCTYPE html>
-<html lang="th">
 <head>
     <meta charset="UTF-8">
     <title>เข้าสู่ระบบ | ว. Workshop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
+    
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <script src="js/script.js" defer></script>
 </head>
 <body class="flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md card-thai reveal">
+    <div class="w-full max-w-md card-thai reveal active">
         <h2 class="text-2xl font-bold text-center mb-6" style="color: var(--thai-red);">เข้าสู่ระบบ</h2>
         <form id="loginForm" class="space-y-4">
             <input type="text" id="username" placeholder="ชื่อผู้ใช้งาน (เช่น nkhongsa)" 
@@ -19,44 +21,4 @@
             <button type="submit" class="w-full btn-thai">ยืนยันตัวตน</button>
         </form>
     </div>
-
-    <script>
-    const SUPABASE_URL = 'https://fucrcbuqbpnbftyljqgi.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_u6oFceXhu-odGTPieNA0pw_mk9uoXwJ';
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    $('#loginForm').submit(async (e) => {
-        e.preventDefault();
-        const userInput = $('#username').val();
-        const password = $('#password').val();
-
-        // ตอนนี้ client จะถูกเรียกใช้งานได้ถูกต้อง
-        const { data: profile, error: findError } = await client
-            .from('profiles')
-            .select('id')
-            .eq('username', userInput)
-            .single();
-
-        if (findError || !profile) {
-            Swal.fire('ไม่พบผู้ใช้งาน', 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง', 'error');
-            return;
-        }
-
-        // ในทางปฏิบัติ Supabase Auth ยังต้องใช้ Email หรือ ID ในการ Sign in
-        // วิธีที่ง่ายที่สุดคือเก็บ Email ไว้ใน Metadata หรือใช้ Email ที่เป็น username@yourdomain.com
-        // แต่ถ้าคุณใช้ระบบ "พนักงาน" ผมแนะนำให้ใช้ ID (Email) ที่แอบซ่อนไว้
-        
-        // สมมติว่าพนักงานทุกคนมี Email ในระบบอยู่แล้ว (เช่น nkhongsa@company.com)
-        const email = userInput + "@yourcompany.com"; 
-
-        const { error: loginError } = await client.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (loginError) Swal.fire('ผิดพลาด', 'รหัสผ่านไม่ถูกต้อง', 'error');
-        else window.location.href = 'workshop.html';
-    });
-</script>
 </body>
-</html>
