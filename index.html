@@ -12,13 +12,55 @@
     <script src="js/script.js" defer></script>
 </head>
 <body class="bg-[#fdfaf5]">
-   <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
+  <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
     <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
-        <div class="text-xl font-bold" style="color: var(--thai-red);">ว.<span>Studio</span></div>
+        <div class="text-xl font-bold" style="color: var(--thai-red);">THAI<span>WORK</span></div>
         
         <div id="navAction" class="relative">
             </div>
     </div>
+
+
+
+
+<div id="profileModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="bg-blue-50 px-6 py-4 flex justify-between items-center">
+            <h3 class="text-lg font-bold">ตั้งค่าบัญชี</h3>
+            <button onclick="closeProfileModal()" class="text-2xl">&times;</button>
+        </div>
+
+        <form id="profileUpdateForm" class="p-6 space-y-4">
+            <div class="flex flex-col items-center gap-2">
+                <img id="profilePreview" src="https://via.placeholder.com/100" class="w-20 h-20 rounded-full object-cover border-2 border-gold">
+                <input type="file" id="avatarInput" accept="image/*" class="text-xs">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-gray-500">USERNAME</label>
+                <input type="text" id="editUsername" class="w-full border p-2 rounded-lg" placeholder="ชื่อผู้ใช้">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-gray-500">ชื่อ-นามสกุล</label>
+                <input type="text" id="editFullName" class="w-full border p-2 rounded-lg" placeholder="ชื่อจริง">
+            </div>
+
+            <hr>
+            <div>
+                <label class="text-xs font-bold text-gray-500">รหัสผ่านใหม่ (ถ้าจะเปลี่ยน)</label>
+                <input type="password" id="newProfilePass" class="w-full border p-2 rounded-lg" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">บันทึกข้อมูล</button>
+        </form>
+    </div>
+</div>
+
+
+
+       
+       
     </nav>
 
     <header class="pt-40 pb-20 px-6 text-center">
