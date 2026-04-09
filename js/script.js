@@ -251,7 +251,7 @@ function setupHRFeatures() {
             title: $('#contentTitle').val().trim(),
             description: $('#contentDesc').val().trim(),
             image_url: $('#contentImage').val().trim(),
-            link_url: '#'
+            link_url: $('#contentLink').val().trim()
         };
 
         if (!formData.title || !formData.description) {
