@@ -12,23 +12,47 @@
     <div class="w-full max-w-md card-thai reveal">
         <h2 class="text-2xl font-bold text-center mb-6" style="color: var(--thai-red);">เข้าสู่ระบบ</h2>
         <form id="loginForm" class="space-y-4">
-            <input type="email" id="email" placeholder="อีเมลพนักงาน" class="w-full border p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500" required>
-            <input type="password" id="password" placeholder="รหัสผ่าน" class="w-full border p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500" required>
+            <input type="text" id="username" placeholder="ชื่อผู้ใช้งาน (เช่น nkhongsa)" 
+                   class="w-full border p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500" required>
+            <input type="password" id="password" placeholder="รหัสผ่าน" 
+                   class="w-full border p-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500" required>
             <button type="submit" class="w-full btn-thai">ยืนยันตัวตน</button>
         </form>
     </div>
 
     <script>
-        const client = supabase.createClient('YOUR_URL', 'YOUR_KEY');
-        $('#loginForm').submit(async (e) => {
-            e.preventDefault();
-            const { error } = await client.auth.signInWithPassword({
-                email: $('#email').val(),
-                password: $('#password').val()
-            });
-            if (error) alert(error.message);
-            else window.location.href = 'workshop.html';
+    $('#loginForm').submit(async (e) => {
+        e.preventDefault();
+        const userInput = $('#username').val();
+        const password = $('#password').val();
+
+        // 1. ค้นหา Email ที่ผูกกับ Username นี้ในตาราง Profiles
+        const { data: profile, error: findError } = await client
+            .from('profiles')
+            .select('id')
+            .eq('username', userInput)
+            .single();
+
+        if (findError || !profile) {
+            Swal.fire('ไม่พบผู้ใช้งาน', 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง', 'error');
+            return;
+        }
+
+        // ในทางปฏิบัติ Supabase Auth ยังต้องใช้ Email หรือ ID ในการ Sign in
+        // วิธีที่ง่ายที่สุดคือเก็บ Email ไว้ใน Metadata หรือใช้ Email ที่เป็น username@yourdomain.com
+        // แต่ถ้าคุณใช้ระบบ "พนักงาน" ผมแนะนำให้ใช้ ID (Email) ที่แอบซ่อนไว้
+        
+        // สมมติว่าพนักงานทุกคนมี Email ในระบบอยู่แล้ว (เช่น nkhongsa@company.com)
+        const email = userInput + "@yourcompany.com"; 
+
+        const { error: loginError } = await client.auth.signInWithPassword({
+            email: email,
+            password: password
         });
-    </script>
+
+        if (loginError) Swal.fire('ผิดพลาด', 'รหัสผ่านไม่ถูกต้อง', 'error');
+        else window.location.href = 'workshop.html';
+    });
+</script>
 </body>
 </html>
