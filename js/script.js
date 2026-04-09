@@ -134,13 +134,59 @@ function renderCalendar(userId, role) {
         slotMaxTime: '20:00:00',
         allDaySlot: false,
         selectable: true,
-        editable: true,
+        editable: true, 
         locale: 'th',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'timeGridWeek,timeGridDay'
         },
+
+        
+        eventClick: async function(info) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'จัดการกิจกรรม',
+                text: `คุณต้องการลบกิจกรรม "${info.event.title}" ใช่หรือไม่?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ลบกิจกรรม',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (isConfirmed) {
+                const { error } = await client
+                    .from('schedules')
+                    .delete()
+                    .eq('id', info.event.id);
+
+                if (!error) {
+                    info.event.remove();
+                    Swal.fire('ลบแล้ว', 'ลบกิจกรรมเรียบร้อย', 'success');
+                } else {
+                    Swal.fire('ผิดพลาด', 'ไม่สามารถลบได้', 'error');
+                }
+            }
+        },
+
+        eventChange: async function(info) {
+            const updateData = {
+                start_time: info.event.startStr,
+                end_time: info.event.endStr
+            };
+
+            const { error } = await client
+                .from('schedules')
+                .update(updateData)
+                .eq('id', info.event.id);
+
+            if (error) {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถอัปเดตเวลาได้', 'error');
+                info.revert(); 
+            }
+        },
+
         select: async function(info) {
             const { value: type } = await Swal.fire({
                 title: 'เลือกประเภทกิจกรรม',
@@ -168,12 +214,20 @@ function renderCalendar(userId, role) {
                         end_time: info.endStr,
                         color_type: type
                     };
-                    await client.from('schedules').insert([eventData]);
-                    calendar.refetchEvents();
+                    
+                    const { data, error } = await client
+                        .from('schedules')
+                        .insert([eventData])
+                        .select(); 
+
+                    if (!error) {
+                        calendar.refetchEvents();
+                    }
                 }
             }
             calendar.unselect();
         },
+
         events: async function(info, successCallback) {
             let query = client.from('schedules').select('*');
             if (role !== 'hr') {
@@ -181,7 +235,7 @@ function renderCalendar(userId, role) {
             }
             const { data } = await query;
             const events = data ? data.map(e => ({
-                id: e.id,
+                id: e.id, 
                 title: e.title,
                 start: e.start_time,
                 end: e.end_time,
