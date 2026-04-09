@@ -97,7 +97,7 @@ async function updateNavbarUI(session) {
 async function initWorkshop(session) {
     const { data: profile, error: profileError } = await client
         .from('profiles')
-        .select('full_name, role, username')
+        .select('full_name, role, username, id')
         .eq('id', session.user.id)
         .single();
 
@@ -106,13 +106,84 @@ async function initWorkshop(session) {
     $('#userDisplay').text(`ผู้ใช้งาน: ${profile.full_name}`);
 
     if (profile.role === 'hr') {
-        $('#mainContent').removeClass('md:col-span-3').addClass('md:col-span-2');
         $('#hrMenu').removeClass('hidden');
+        $('#hrAssignmentPanel').removeClass('hidden');
         setupHRFeatures();
     }
 
+    renderCalendar(profile.id, profile.role);
     loadAssignments();
     $('body').removeClass('hidden');
+}
+
+function renderCalendar(userId, role) {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        slotMinTime: '08:00:00',
+        slotMaxTime: '20:00:00',
+        allDaySlot: false,
+        selectable: true,
+        editable: true,
+        locale: 'th',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'timeGridWeek,timeGridDay'
+        },
+        select: async function(info) {
+            const { value: type } = await Swal.fire({
+                title: 'เลือกประเภทกิจกรรม',
+                input: 'radio',
+                inputOptions: {
+                    '#3b82f6': 'ทำงาน (สีฟ้า)',
+                    '#f59e0b': 'ไม่ว่าง/ลางาน (สีเหลือง)'
+                },
+                inputValidator: (value) => { if (!value) return 'กรุณาเลือกหนึ่งอย่าง' }
+            });
+
+            if (type) {
+                const { value: title } = await Swal.fire({
+                    title: 'หัวข้อกิจกรรม',
+                    input: 'text',
+                    inputPlaceholder: 'ระบุหัวข้อ...',
+                    showCancelButton: true
+                });
+
+                if (title) {
+                    const eventData = {
+                        user_id: userId,
+                        title: title,
+                        start_time: info.startStr,
+                        end_time: info.endStr,
+                        color_type: type
+                    };
+                    await client.from('schedules').insert([eventData]);
+                    calendar.refetchEvents();
+                }
+            }
+            calendar.unselect();
+        },
+        events: async function(info, successCallback) {
+            let query = client.from('schedules').select('*');
+            if (role !== 'hr') {
+                query = query.eq('user_id', userId);
+            }
+            const { data } = await query;
+            const events = data.map(e => ({
+                id: e.id,
+                title: e.title,
+                start: e.start_time,
+                end: e.end_time,
+                backgroundColor: e.color_type,
+                borderColor: 'transparent'
+            }));
+            successCallback(events);
+        }
+    });
+    calendar.render();
 }
 
 async function loadAssignments() {
@@ -121,30 +192,52 @@ async function loadAssignments() {
         .select('*')
         .order('due_date', { ascending: true });
 
-    const taskContainer = $('#taskList');
+    const taskContainer = $('#assignmentList');
+    if (!taskContainer.length) return;
     taskContainer.empty();
 
     if (!assignments || assignments.length === 0) {
-        taskContainer.append('<p class="text-gray-400 italic">ไม่มีรายการงานในขณะนี้...</p>');
+        taskContainer.append('<p class="text-gray-400 text-center py-10 italic">ไม่มีรายการงานในขณะนี้...</p>');
         return;
     }
 
     assignments.forEach(task => {
         taskContainer.append(`
-            <div class="p-4 border-l-4 border-amber-400 bg-gray-50 rounded-r-lg hover:shadow-md transition duration-300">
+            <div class="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition shadow-sm">
                 <div class="flex justify-between items-start">
                     <h4 class="font-bold text-gray-800">${task.title}</h4>
-                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded font-bold uppercase">
-                        ${new Date(task.due_date).toLocaleDateString('th-TH')}
+                    <span class="text-[10px] font-bold text-red-600 uppercase">
+                        Due: ${new Date(task.due_date).toLocaleDateString('th-TH')}
                     </span>
                 </div>
-                <p class="text-sm text-gray-600 mt-1">${task.description || '-'}</p>
+                <p class="text-xs text-gray-600 mt-2">${task.description || '-'}</p>
+                <div class="mt-3 pt-3 border-t flex justify-end">
+                    <button class="text-xs font-bold text-blue-600 hover:underline">ส่งงาน</button>
+                </div>
             </div>
         `);
     });
 }
 
 function setupHRFeatures() {
+    $('#createTaskForm').off('submit').on('submit', async function(e) {
+        e.preventDefault();
+        const taskData = {
+            title: $('#taskTitle').val().trim(),
+            description: $('#taskDesc').val().trim(),
+            due_date: $('#taskDue').val()
+        };
+
+        const { error } = await client.from('assignments').insert([taskData]);
+        if (error) {
+            Swal.fire('ผิดพลาด', 'ไม่สามารถสั่งงานได้', 'error');
+        } else {
+            Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อย', 'success');
+            this.reset();
+            loadAssignments();
+        }
+    });
+
     $('#addStaffForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
         const fullName = $('#newStaffName').val().trim();
