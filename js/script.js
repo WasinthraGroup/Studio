@@ -1,57 +1,64 @@
-// ตั้งค่า Supabase
 const SUPABASE_URL = 'https://fucrcbuqbpnbftyljqgi.supabase.co';
-// สำคัญ: ต้องใช้ค่า "anon public" ที่ขึ้นต้นด้วย eyJ... เท่านั้น
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3JjYnVxYnBuYmZ0eWxqcWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Nzc1MTIsImV4cCI6MjA5MTI1MzUxMn0.XXKIgZ_9Ciciq3qfgINK48J70HbunRyP28p1MiIv6To'; 
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3JjYnVxYnBuYmZ0eWxqcWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Nzc1MTIsImV4cCI6MjA5MTI1MzUxMn0.XXKIgZ_9Ciciq3qfgINK48J70HbunRyP28p1MiIv6To';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 $(document).ready(function() {
-    
+    console.log("🚀 System: Login script initialized.");
+
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
         
-        const userInput = $('#username').val();
+        const userInput = $('#username').val().trim();
         const password = $('#password').val();
 
+        console.log(`🔍 Debug 1: Searching for user: ${userInput}`);
+
         try {
-            // 1. ตรวจสอบว่ามี Username นี้ในตาราง profiles หรือไม่
+            // STEP 1: ค้นหา Profile
             const { data: profile, error: findError } = await client
                 .from('profiles')
                 .select('id')
                 .eq('username', userInput)
                 .single();
 
-            if (findError || !profile) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ไม่พบผู้ใช้งาน',
-                    text: 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง'
-                });
+            if (findError) {
+                console.error("❌ Debug 1 Error:", findError.message);
+                console.error("Full Error Object:", findError);
+                
+                let errorMsg = 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง';
+                if (findError.code === 'PGRST116') errorMsg = 'ไม่พบชื่อผู้ใช้งานนี้ในระบบ';
+                if (findError.code === '42501') errorMsg = 'ระบบถูกล็อค (RLS Error): โปรดติดต่อผู้ดูแลให้เปิดสิทธิ์ Select';
+
+                Swal.fire({ icon: 'error', title: 'ไม่พบผู้ใช้งาน', text: errorMsg });
                 return;
             }
 
-            // 2. ทำการ Login (ใช้อีเมลจำลองที่สัมพันธ์กับตอนสมัคร)
+            console.log("✅ Debug 1 Success: Found Profile ID:", profile.id);
+
+            // STEP 2: พยายาม Login
             const email = userInput + "@gmail.com"; 
+            console.log(`🔐 Debug 2: Attempting Auth with: ${email}`);
 
             const { data: authData, error: loginError } = await client.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-        
-        if (loginError) {
-            console.error("Login Error Details:", loginError); // ดูใน Inspect > Console
-            Swal.fire({
-                icon: 'error',
-                title: 'เข้าสู่ระบบไม่สำเร็จ',
-                text: `สาเหตุ: ${loginError.message}` // ระบบจะบอกเองว่า Invalid Credentials หรือ Email not confirmed
+                email: email,
+                password: password
             });
-        } else {
+
+            if (loginError) {
+                console.error("❌ Debug 2 Error:", loginError.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เข้าสู่ระบบไม่สำเร็จ',
+                    text: `สาเหตุ: ${loginError.message}`
+                });
+            } else {
+                console.log("🎉 Debug 2 Success: Login Granted!");
                 window.location.href = 'workshop.html';
             }
             
         } catch (err) {
-            console.error('System Error:', err);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+            console.error('💥 Critical System Error:', err);
+            Swal.fire('เกิดข้อผิดพลาด', 'เกิดปัญหาที่ระบบฝั่ง Client', 'error');
         }
     });
-
 });
