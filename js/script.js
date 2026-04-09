@@ -155,7 +155,7 @@ function setupHRFeatures() {
         e.preventDefault();
         const expireInput = $('#inviteExpire').val(); 
         if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
-        const expireDate = new Date(expireInput).toISOString();
+        const expireDate = new Date(expireInput);
         const token = crypto.randomUUID().replaceAll('-', '');
         const { error } = await client.from("invites").insert({ 
             token: token, 
