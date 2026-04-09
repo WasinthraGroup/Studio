@@ -152,16 +152,29 @@ async function loadAssignments() {
 
 function setupHRFeatures() {
     $('#invitePanel').removeClass('hidden');
-    $('#createInviteForm').off('submit').on('submit', async function(e) {
-        e.preventDefault();
-        const expire = $('#inviteExpire').val();
-        const token = crypto.randomUUID().replaceAll('-', '');
-        const { error } = await client.from("invites").insert({ token: token, expires_at: expire });
-        if (!error) {
-            const link = window.location.origin + "/register.html?token=" + token;
-            $('#inviteResult').html(`<input value="${link}" class="w-full border p-2 text-sm" readonly onclick="this.select()">`);
-        }
+   $('#createInviteForm').off('submit').on('submit', async function(e) {
+    e.preventDefault();
+    const expireInput = $('#inviteExpire').val(); 
+    if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
+    const expireDate = new Date(expireInput).toISOString();
+    const token = crypto.randomUUID().replaceAll('-', '');
+    const { error } = await client.from("invites").insert({ 
+        token: token, 
+        expires_at: expireDate 
     });
+
+    if (!error) {
+        const link = window.location.origin + "/register.html?token=" + token;
+        $('#inviteResult').html(`
+            <p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p>
+            <input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()">
+            <p class="text-[10px] text-gray-400 mt-1">*ลิงก์จะหมดอายุเมื่อ: ${new Date(expireDate).toLocaleString('th-TH')}</p>
+        `);
+    } else {
+        console.error(error);
+        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถสร้างลิงก์ได้", "error");
+    }
+});
 
     $('#createTaskForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
