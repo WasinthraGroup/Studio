@@ -211,26 +211,44 @@ async function initRegister() {
     });
 }
 
+
+
+
+
 async function updateNavbarUI(session) {
     const navAction = $('#navAction');
-    const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+    if (!navAction.length) return;
 
-    if (session) {
-        const { data: profile } = await client.from('profiles').select('avatar_url').eq('id', session.user.id).single();
-        const avatar = (profile && profile.avatar_url) ? profile.avatar_url : 'https://via.placeholder.com/40';
+    if (session && session.user) {
+        try {
+            const { data: profile, error } = await client
+                .from('profiles')
+                .select('avatar_url, full_name')
+                .eq('id', session.user.id)
+                .single();
 
-        navAction.html(`
-            <div class="flex gap-6 items-center">
-                <button onclick="openProfileModal()" class="flex items-center gap-2 hover:opacity-80 transition-all">
-                    <img id="navAvatar" src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-[#b38b59]/30">
-                    <span class="text-sm font-bold text-[#2d2d2d]">โปรไฟล์</span>
-                </button>
-                <button id="logoutBtn" class="text-red-700 text-sm font-medium hover:underline">ออกจากระบบ</button>
-            </div>
-        `);
+            if (error) throw error;
+
+            const avatar = (profile && profile.avatar_url) ? profile.avatar_url : 'https://via.placeholder.com/40';
+            const displayName = (profile && profile.full_name) ? profile.full_name : 'โปรไฟล์';
+
+            navAction.html(`
+                <div class="flex gap-6 items-center">
+                    <button onclick="openProfileModal()" class="flex items-center gap-2 hover:opacity-80 transition-all group">
+                        <img id="navAvatar" src="${avatar}" class="w-9 h-9 rounded-full object-cover border-2 border-[#b38b59]/20 group-hover:border-[#b38b59]/50 transition-all">
+                        <span class="text-sm font-semibold text-gray-700">${displayName}</span>
+                    </button>
+                    <div class="h-4 w-[1px] bg-gray-300"></div>
+                    <button id="logoutBtn" class="text-red-700 text-sm font-medium hover:text-red-500 transition-colors">ออกจากระบบ</button>
+                </div>
+            `);
+        } catch (err) {
+            console.error("Navbar Error:", err);
+            navAction.html(`<button id="logoutBtn" class="text-red-700 text-sm">ออกจากระบบ</button>`);
+        }
     } else {
         navAction.html(`
-            <a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm transition-all">เข้าสู่ระบบพนักงาน</a>
+            <a href="login.html" class="btn-thai px-6 py-2 rounded-lg text-sm font-semibold transition-all">เข้าสู่ระบบพนักงาน</a>
         `);
     }
 }
