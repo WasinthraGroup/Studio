@@ -48,6 +48,19 @@
             </div>
 
             <div class="space-y-6">
+                <div id="invitePanel" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+                    <h3 class="font-bold text-red-700 mb-4">สร้างลิงค์สมัครพนักงาน</h3>
+                    <form id="createInviteForm" class="space-y-4">
+                        <input 
+                        type="datetime-local"
+                        id="inviteExpire"
+                        class="w-full border p-2 rounded text-sm"
+                        required>
+                        <button type="submit" class="w-full bg-red-700 text-white py-2 rounded-lg text-sm font-bold">สร้างลิงค์</button>
+                    </form>
+                    <div id="inviteResult" class="mt-4 text-xs"></div>
+                </div>
+                
                 <div id="hrAssignmentPanel" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-red-100">
                     <h3 class="font-bold text-red-700 mb-4">ลงงาน</h3>
                     <form id="createTaskForm" class="space-y-4">
