@@ -188,11 +188,20 @@ async function initRegister() {
     if (!token) { Swal.fire("ลิงก์ไม่ถูกต้อง"); return; }
 
     const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
-    const expireTime = invite ? new Date(invite.expires_at).getTime() : 0;
+   const expireTime = invite ? new Date(invite.expires_at).getTime() : 0;
     const currentTime = new Date().getTime();
-
+    
+    console.log("Expire (Ms):", expireTime);
+    console.log("Current (Ms):", currentTime);
+    console.log("Diff (Sec):", (expireTime - currentTime) / 1000);
+    
     if (!invite || invite.used || expireTime < currentTime) {
-        Swal.fire("ลิงก์หมดอายุหรือถูกใช้ไปแล้ว"); return;
+        Swal.fire({
+            icon: 'error',
+            title: 'ลิงก์หมดอายุ',
+            text: `หมดอายุเมื่อ: ${new Date(expireTime).toLocaleString('th-TH')}`
+        }); 
+        return;
     }
 
     $('#registerForm').submit(async function(e) {
