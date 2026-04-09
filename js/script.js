@@ -151,23 +151,28 @@ async function loadAssignments() {
 
 function setupHRFeatures() {
     $('#invitePanel, #hrAssignmentPanel').removeClass('hidden');
-    $('#createInviteForm').off('submit').on('submit', async function(e) {
+   $('#createInviteForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
         const expireInput = $('#inviteExpire').val(); 
         if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
-        const expireDate = new Date(expireInput);
+    
+        const dateObj = new Date(expireInput);
+        const offset = dateObj.getTimezoneOffset() * 60000;
+        const localISO = new Date(dateObj.getTime() - offset).toISOString();
+    
         const token = crypto.randomUUID().replaceAll('-', '');
+        
         const { error } = await client.from("invites").insert({ 
             token: token, 
-            expires_at: expireDate 
+            expires_at: localISO 
         });
-
+    
         if (!error) {
             const link = window.location.origin + "/register.html?token=" + token;
             $('#inviteResult').html(`
                 <p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p>
                 <input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()">
-                <p class="text-[10px] text-gray-400 mt-1">*หมดอายุ: ${new Date(expireDate).toLocaleString('th-TH')}</p>
+                <p class="text-[10px] text-gray-400 mt-1">*หมดอายุ: ${new Date(expireInput).toLocaleString('th-TH')}</p>
             `);
         } else {
             Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถสร้างลิงก์ได้", "error");
@@ -182,6 +187,7 @@ function setupHRFeatures() {
     });
 }
 
+
 async function initRegister() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
@@ -195,22 +201,18 @@ async function initRegister() {
         return;
     }
     
-    // 2. สร้าง Date Object จากค่าใน DB (JS จะแปลง UTC ใน DB ให้เป็น Local Time ของเครื่องเราอัตโนมัติ)
     const expireDate = new Date(invite.expires_at); 
     
-    // 3. เวลาปัจจุบันของเครื่องเรา (ซึ่งเป็น Local Time/UTC+7 อยู่แล้ว)
     const currentDate = new Date();
     
-    // 4. เทียบกันตรงๆ (หน่วยมิลลิวินาที)
     const expireTimestamp = expireDate.getTime();
     const currentTimestamp = currentDate.getTime();
     
-    // Debug ดูค่า (จะเห็นว่ามันกลายเป็นเวลาไทยให้เราแล้ว)
     console.log("Expire (Local):", expireDate.toLocaleString('th-TH'));
     console.log("Current (Local):", currentDate.toLocaleString('th-TH'));
     console.log("Diff (Sec):", (expireTimestamp - currentTimestamp) / 1000);
     
-    // 5. เงื่อนไขการเช็ค
+
     if (invite.used || expireTimestamp < currentTimestamp) {
         Swal.fire({
             icon: 'error',
@@ -221,9 +223,6 @@ async function initRegister() {
     }
 
 
-
-
-    
 
     $('#registerForm').submit(async function(e) {
         e.preventDefault();
