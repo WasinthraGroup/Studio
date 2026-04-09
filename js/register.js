@@ -1,185 +1,295 @@
-const SUPABASE_URL = 'https://fucrcbuqbpnbftyljqgi.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3JjYnVxYnBuYmZ0eWxqcWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Nzc1MTIsImV4cCI6MjA5MTI1MzUxMn0.XXKIgZ_9Ciciq3qfgINK48J70HbunRyP28p1MiIv6To';
+const SUPABASE_URL =
+'https://fucrcbuqbpnbftyljqgi.supabase.co';
 
+const SUPABASE_KEY =
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Y3JjYnVxYnBuYmZ0eWxqcWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2Nzc1MTIsImV4cCI6MjA5MTI1MzUxMn0.XXKIgZ_9Ciciq3qfgINK48J70HbunRyP28p1MiIv6To';
 
 const client =
-    supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
+supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
 
-function deviceHash() {
+function deviceHash(){
 
-    return btoa(
+return btoa(
 
-        navigator.userAgent +
-        screen.width +
-        screen.height +
-        Intl.DateTimeFormat().resolvedOptions().timeZone
+navigator.userAgent+
+screen.width+
+screen.height+
+Intl.DateTimeFormat()
+.resolvedOptions()
+.timeZone
 
-    );
+);
 
 }
 
-$(document).ready(async function () {
+$(document).ready(
+async function(){
 
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
+const params =
+new URLSearchParams(
+window.location.search
+);
 
-    const token =
-        params.get("token");
+const token =
+params.get("token");
 
-    if (!token) {
+if(!token){
 
-        Swal.fire(
-            "invalid link"
-        );
+Swal.fire({
 
-        return;
+icon:"error",
 
-    }
+title:"ลิงค์ไม่ถูกต้อง"
 
-    const { data: invite } =
-        await client
-            .from("invites")
-            .select("*")
-            .eq("token", token)
-            .single();
+});
 
-    if (!invite) {
+return;
 
-        Swal.fire(
-            "invalid invite"
-        );
+}
 
-        return;
+const {data:invite,error:inviteError} =
+await client
+.from("invites")
+.select("*")
+.eq("token",token)
+.single();
 
-    }
+if(inviteError || !invite){
 
-    if (invite.used) {
+Swal.fire({
 
-        Swal.fire(
-            "invite used"
-        );
+icon:"error",
 
-        return;
+title:"invite ไม่ถูกต้อง"
 
-    }
+});
 
-    if (
-        new Date(invite.expires_at)
-        <
-        new Date()
-    ) {
+return;
 
-        Swal.fire(
-            "invite expired"
-        );
+}
 
-        return;
+if(invite.used){
 
-    }
+Swal.fire({
 
-    $('#registerForm').submit(
-        async function (e) {
+icon:"error",
 
-            e.preventDefault();
+title:"ลิงค์ถูกใช้แล้ว"
 
-            const email =
-                $('#email').val();
+});
 
-            const username =
-                $('#username').val();
+return;
 
-            const pass =
-                $('#password').val();
+}
 
-            const confirm =
-                $('#confirm').val();
+if(
+new Date(invite.expires_at)
+<
+new Date()
+){
 
-            if (pass !== confirm) {
+Swal.fire({
 
-                Swal.fire(
-                    "password mismatch"
-                );
+icon:"error",
 
-                return;
+title:"ลิงค์หมดอายุ"
 
-            }
+});
 
-            const device =
-                deviceHash();
+return;
 
-            const { data, error } =
-                await client.auth.signUp({
+}
 
-                    email: email,
+$('#registerForm')
+.submit(
+async function(e){
 
-                    password: pass
+e.preventDefault();
 
-                });
+const email =
+$('#email')
+.val()
+.trim();
 
-            if (error) {
+const username =
+$('#username')
+.val()
+.trim()
+.toLowerCase();
 
-                Swal.fire(
-                    error.message
-                );
+const pass =
+$('#password')
+.val();
 
-                return;
+const confirm =
+$('#confirm')
+.val();
 
-            }
+if(pass!==confirm){
 
-            await client
-                .from("profiles")
-                .update({
+Swal.fire({
 
-                    username: username,
+icon:"warning",
 
-                    role: "staff",
+title:"รหัสไม่ตรงกัน"
 
-                    full_name: username
+});
 
-                })
-                .eq(
-                    "id",
-                    data.user.id
-                );
+return;
 
-            await client
-                .from("devices")
-                .insert({
+}
 
-                    user_id:
-                        data.user.id,
+const device =
+deviceHash();
 
-                    device_hash:
-                        device
+const {data:dev} =
+await client
+.from("devices")
+.select("*")
+.eq(
+"device_hash",
+device
+)
+.maybeSingle();
 
-                });
+if(dev){
 
-            await client
-                .from("invites")
-                .update({
+Swal.fire({
 
-                    used: true,
+icon:"error",
 
-                    used_by:
-                        data.user.id,
+title:"อุปกรณ์นี้มีบัญชีแล้ว",
 
-                    device_id:
-                        device
+text:"1 อุปกรณ์ใช้ได้ 1 บัญชีเท่านั้น"
 
-                })
-                .eq(
-                    "token",
-                    token
-                );
+});
 
-            window.location =
-                "workshop.html";
+return;
 
-        });
+}
+
+const {data:userCheck} =
+await client
+.from("profiles")
+.select("username")
+.eq(
+"username",
+username
+)
+.maybeSingle();
+
+if(userCheck){
+
+Swal.fire({
+
+icon:"error",
+
+title:"username ซ้ำ"
+
+});
+
+return;
+
+}
+
+Swal.fire({
+
+title:"กำลังสร้างบัญชี",
+
+allowOutsideClick:false,
+
+didOpen:()=>{
+Swal.showLoading();
+}
+
+});
+
+const {data,error} =
+await client.auth.signUp({
+
+email:email,
+
+password:pass
+
+});
+
+if(error){
+
+Swal.fire({
+
+icon:"error",
+
+title:error.message
+
+});
+
+return;
+
+}
+
+await client
+.from("profiles")
+.update({
+
+username:username,
+
+role:"staff",
+
+full_name:username
+
+})
+.eq(
+"id",
+data.user.id
+);
+
+await client
+.from("devices")
+.insert({
+
+user_id:
+data.user.id,
+
+device_hash:
+device
+
+});
+
+await client
+.from("invites")
+.update({
+
+used:true,
+
+used_by:
+data.user.id,
+
+device_id:
+device
+
+})
+.eq(
+"token",
+token
+);
+
+
+Swal.fire({
+
+icon:"success",
+
+title:"สมัครสำเร็จ"
+
+}).then(()=>{
+
+window.location =
+"workshop.html";
+
+});
+
+});
 
 });
