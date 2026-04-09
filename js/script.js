@@ -4,15 +4,24 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 $(document).ready(async function() {
     const { data: { session } } = await client.auth.getSession();
-    const currentPage = window.location.pathname.split("/").pop();
+    const currentPage = window.location.pathname.split("/").pop() || 'index.html';
 
     if (currentPage === 'login.html') {
         if (session) { window.location.href = 'workshop.html'; return; }
-    } else if (currentPage === 'workshop.html') {
+    } 
+    else if (currentPage === 'workshop.html') {
         if (!session) { window.location.href = 'login.html'; return; }
         initWorkshop(session);
-    } else if (currentPage === 'register.html') {
+    } 
+    else if (currentPage === 'register.html') {
         initRegister();
+    } 
+    else if (currentPage === 'index.html' || currentPage === '') {
+        loadContents('news', 'newsContainer');
+        loadContents('projects', 'projectsContainer');
+    }
+    else if (currentPage === 'projects.html') {
+        loadContents('projects', 'projectsGrid');
     }
 
     updateNavbarUI(session);
@@ -233,6 +242,34 @@ function setupHRFeatures() {
         const task = { title: $('#taskTitle').val(), description: $('#taskDesc').val(), due_date: $('#taskDue').val() };
         const { error } = await client.from('assignments').insert([task]);
         if (!error) { Swal.fire('สำเร็จ', 'มอบหมายงานแล้ว', 'success'); this.reset(); loadAssignments(); }
+    });    
+    $('#addContentForm').off('submit').on('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            type: $('#contentType').val(),
+            title: $('#contentTitle').val().trim(),
+            description: $('#contentDesc').val().trim(),
+            image_url: $('#contentImage').val().trim(),
+            link_url: '#'
+        };
+
+        if (!formData.title || !formData.description) {
+            return Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
+        }
+
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+        const { error } = await client.from('contents').insert([formData]);
+
+        if (!error) {
+            await Swal.fire('สำเร็จ!', 'เพิ่มเนื้อหาเรียบร้อยแล้ว', 'success');
+            this.reset(); 
+            location.reload(); 
+        } else {
+            console.error(error);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+        }
     });
 }
 
