@@ -245,11 +245,11 @@ async function sendComment(isPrivate) {
 
 async function submitWork() {
     const url = $('#workUrl').val();
-    if (!url) return Swal.fire('ลืมใส่ลิงก์!', 'กรุณาแนบลิงก์งานก่อนส่ง', 'warning');
+    // if (!url) return Swal.fire('ลืมใส่ลิงก์!', 'กรุณาแนบลิงก์งานก่อนส่ง', 'warning');
     await client.from('student_assignments').upsert({
         assignment_id: activeTaskId,
         user_id: currentUser.id,
-        submission_url: url,
+        submission_url: url || "",
         status: 'submitted'
     });
     Swal.fire('ส่งงานสำเร็จ!', '', 'success');
