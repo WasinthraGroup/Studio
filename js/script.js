@@ -6,6 +6,7 @@ $(document).ready(async function() {
     const { data: { session } } = await client.auth.getSession();
     const currentPage = window.location.pathname.split("/").pop() || 'index.html';
 
+    // 1. Route Guard & Initialization
     if (currentPage === 'login.html') {
         if (session) { window.location.href = 'workshop.html'; return; }
     } 
@@ -26,6 +27,7 @@ $(document).ready(async function() {
 
     updateNavbarUI(session);
 
+    // 2. Login Logic
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
         const userInput = $('#username').val().trim();
@@ -39,34 +41,22 @@ $(document).ready(async function() {
         Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
     
         try {
-            let loginEmail = '';
+            let loginEmail = userInput.includes('@') ? userInput : userInput + "@gmail.com";
     
-            if (userInput.includes('@')) {
-                loginEmail = userInput;
-            } else {
-                loginEmail = userInput + "@gmail.com";
-            }
-    
-            // ลอง Login
             const { error: authError } = await client.auth.signInWithPassword({
                 email: loginEmail,
                 password: password
             });
     
             if (authError) {
-                if (!userInput.includes('@')) {
-                    Swal.fire({ 
-                        icon: 'error', 
-                        title: 'เข้าสู่ระบบไม่สำเร็จ', 
-                        text: 'หากคุณไม่ได้ใช้ Gmail โปรดระบุ Email เต็มในการเข้าใช้งาน' 
-                    });
-                } else {
-                    Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง' });
-                }
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'เข้าสู่ระบบไม่สำเร็จ', 
+                    text: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' 
+                });
             } else {
                 window.location.href = 'workshop.html';
             }
-    
         } catch (err) {
             Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง' });
         }
@@ -78,6 +68,7 @@ $(document).ready(async function() {
     });
 });
 
+// --- WORKSHOP MAIN LOGIC ---
 async function initWorkshop(session) {
     const { data: profile, error } = await client.from('profiles').select('*').eq('id', session.user.id).single();
     if (error || !profile) return;
@@ -88,11 +79,33 @@ async function initWorkshop(session) {
         setupHRFeatures();
     }
 
+    // โหลดปฏิทินงานตามปกติ
     renderCalendar(profile.id, profile.role);
-    loadAssignments();
+    
+    // เปลี่ยนจากการโหลดรายการงาน "เป็นปุ่มกดไปหน้าจัดการงาน" แทน
+    renderAssignmentLink();
+    
     $('body').removeClass('hidden');
 }
 
+// แทนที่ loadAssignments เดิมด้วยฟังก์ชันแสดงปุ่มไปหน้าใหม่
+function renderAssignmentLink() {
+    const container = $('#assignmentList');
+    if (!container.length) return;
+    container.empty();
+    
+    container.append(`
+        <div class="text-center py-6">
+            <p class="text-sm text-gray-500 mb-4">ดูรายการงานที่ได้รับมอบหมาย ส่งงาน และคุยกับผู้ดูแล</p>
+            <button onclick="window.location.href='assignments.html'" 
+                class="w-full bg-[#721c24] text-white py-4 rounded-2xl font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+                <i class="fa-solid fa-chalkboard-user mr-2"></i> เข้าสู่หน้าจัดการงาน
+            </button>
+        </div>
+    `);
+}
+
+// --- CALENDAR SYSTEM ---
 function renderCalendar(userId, role) {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -159,37 +172,7 @@ function renderCalendar(userId, role) {
     calendar.render();
 }
 
-async function loadAssignments() {
-    const { data } = await client.from('assignments').select('*').order('due_date', { ascending: true });
-    const container = $('#assignmentList');
-    if (!container.length) return;
-    container.empty();
-
-    if (!data || data.length === 0) {
-        container.append('<p class="text-center py-10 text-gray-400">ไม่มีงานที่มอบหมาย</p>');
-        return;
-    }
-
-    data.forEach(task => {
-        container.append(`
-            <div class="p-4 border rounded-xl mb-3 bg-white shadow-sm">
-                <div class="flex justify-between">
-                    <h4 class="font-bold">${task.title}</h4>
-                    <span class="text-xs text-red-500">DUE: ${new Date(task.due_date).toLocaleDateString('th-TH')}</span>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">${task.description || '-'}</p>
-            </div>
-        `);
-    });
-}
-
-
-
-
-
-
-
-
+// --- CONTENT SYSTEM (News/Projects) ---
 async function loadContents(type, containerId) {
     const { data, error } = await client
         .from('contents')
@@ -198,47 +181,34 @@ async function loadContents(type, containerId) {
         .order('created_at', { ascending: false });
 
     if (error) return;
-
     const container = $(`#${containerId}`);
     container.empty();
 
     data.forEach(item => {
-    const linkButton = (item.link_url && item.link_url !== '#') 
-        ? `<a target="_blank" href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` 
-        : '';
+        const linkButton = (item.link_url && item.link_url !== '#') 
+            ? `<a target="_blank" href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` 
+            : '';
 
-    container.append(`
-        <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
-            <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
-            <div class="p-6">
-                <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">${item.type}</span>
-                <h3 class="font-bold text-lg mt-2 mb-3">${item.title}</h3>
-                <p class="text-sm text-gray-600 leading-relaxed line-clamp-3">${item.description}</p>
-                ${linkButton}
-            </div>
-        </article>
-    `);
-});
+        container.append(`
+            <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
+                <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
+                <div class="p-6">
+                    <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">${item.type}</span>
+                    <h3 class="font-bold text-lg mt-2 mb-3">${item.title}</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed line-clamp-3">${item.description}</p>
+                    ${linkButton}
+                </div>
+            </article>
+        `);
+    });
 }
 
-async function addContent(formData) {
-    const { error } = await client.from('contents').insert([formData]);
-    if (!error) {
-        Swal.fire('สำเร็จ!', 'เพิ่มเนื้อหาเรียบร้อยแล้ว', 'success');
-        location.reload();
-    }
-}
-
-
-
-
-
-
-
+// --- HR SPECIFIC FEATURES ---
 function setupHRFeatures() {
     $('#hrContentPanel').removeClass('hidden');
-    $('#invitePanel, #hrAssignmentPanel').removeClass('hidden');
-   $('#createInviteForm').off('submit').on('submit', async function(e) {
+    $('#invitePanel').removeClass('hidden'); // แสดงเฉพาะแผงสร้างลิงก์เชิญ (ส่วนลงงานย้ายไปหน้าจัดการงานแล้ว)
+
+    $('#createInviteForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
         const expireInput = $('#inviteExpire').val(); 
         if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
@@ -266,15 +236,8 @@ function setupHRFeatures() {
         }
     });
 
-    $('#createTaskForm').off('submit').on('submit', async function(e) {
-        e.preventDefault();
-        const task = { title: $('#taskTitle').val(), description: $('#taskDesc').val(), due_date: $('#taskDue').val() };
-        const { error } = await client.from('assignments').insert([task]);
-        if (!error) { Swal.fire('สำเร็จ', 'มอบหมายงานแล้ว', 'success'); this.reset(); loadAssignments(); }
-    });    
     $('#addContentForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
-        
         const formData = {
             type: $('#contentType').val(),
             title: $('#contentTitle').val().trim(),
@@ -283,12 +246,9 @@ function setupHRFeatures() {
             link_url: $('#contentLink').val().trim()
         };
 
-        if (!formData.title || !formData.description) {
-            return Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
-        }
+        if (!formData.title || !formData.description) return Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
 
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-
         const { error } = await client.from('contents').insert([formData]);
 
         if (!error) {
@@ -296,58 +256,37 @@ function setupHRFeatures() {
             this.reset(); 
             location.reload(); 
         } else {
-            console.error(error);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, 'error');
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
         }
     });
 }
 
-
+// --- REGISTER & PROFILE FUNCTIONS (เหมือนเดิม) ---
 async function initRegister() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (!token) { Swal.fire("ลิงก์ไม่ถูกต้อง"); return; }
-
     
-   const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
+    const { data: invite } = await client.from("invites").select("*").eq("token", token).single();
+    if (!invite) return Swal.fire("ไม่พบลิงก์นี้ในระบบ");
 
-    if (!invite) {
-        Swal.fire("ไม่พบลิงก์นี้ในระบบ");
-        return;
-    }
-    
     const expireDate = new Date(invite.expires_at); 
-    
     const currentDate = new Date();
-    
-    const expireTimestamp = expireDate.getTime();
-    const currentTimestamp = currentDate.getTime();
-    
-    console.log("Expire (Local):", expireDate.toLocaleString('th-TH'));
-    console.log("Current (Local):", currentDate.toLocaleString('th-TH'));
-    console.log("Diff (Sec):", (expireTimestamp - currentTimestamp) / 1000);
-    
 
-    if (invite.used || expireTimestamp < currentTimestamp) {
-        Swal.fire({
-            icon: 'error',
-            title: 'ลิงก์หมดอายุ',
-            text: `ลิงก์นี้หมดอายุแล้วเมื่อ: ${expireDate.toLocaleString('th-TH')}`
-        }); 
+    if (invite.used || expireDate.getTime() < currentDate.getTime()) {
+        Swal.fire({ icon: 'error', title: 'ลิงก์หมดอายุ' }); 
         return;
     }
-
-
 
     $('#registerForm').submit(async function(e) {
         e.preventDefault();
         const username = $('#username').val().trim().toLowerCase();
         const pass = $('#password').val();
-        if (pass !== $('#confirm').val()) { Swal.fire("รหัสผ่านไม่ตรงกัน"); return; }
+        if (pass !== $('#confirm').val()) return Swal.fire("รหัสผ่านไม่ตรงกัน");
 
         Swal.fire({ title: "กำลังสร้างบัญชี...", didOpen: () => Swal.showLoading() });
         const { data, error } = await client.auth.signUp({ email: username + "@gmail.com", password: pass });
-        if (error) { Swal.fire(error.message); return; }
+        if (error) return Swal.fire(error.message);
 
         await client.from("profiles").update({ username: username, role: "staff", full_name: username }).eq("id", data.user.id);
         await client.from("invites").update({ used: true, used_by: data.user.id }).eq("token", token);
