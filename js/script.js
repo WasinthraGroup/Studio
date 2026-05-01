@@ -96,7 +96,7 @@ async function loadAssignmentsListSimple() {
 }
 
 function initAssignmentsPage() {
-    $('#navAvatar, #streamAvatar').attr('src', currentUser.avatar_url || 'https://via.placeholder.com/100');
+    $('#navAvatar, #streamAvatar').attr('src', currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png');
     if (currentUser.role === 'hr' || currentUser.role === 'admin') $('#hrOnlyAction').removeClass('hidden');
     switchTab('stream');
     $('body').removeClass('hidden');
@@ -145,12 +145,23 @@ async function loadClasswork() {
     });
 }
 
+function urlToLink(text) {
+    if (!text) return '-';
+    const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.replace(urlPattern, (url) => {
+        return `<a href="${url}" target="_blank" class="text-blue-500 underline hover:text-blue-700">${url}</a>`;
+    });
+}
+
 async function openTaskModal(id) {
     activeTaskId = id;
     const { data: task } = await client.from('assignments').select('*').eq('id', id).single();
     const { data: sub } = await client.from('student_assignments').select('*').eq('assignment_id', id).eq('user_id', currentUser.id).single();
+    
     $('#mTaskTitle').text(task.title);
-    $('#mTaskDesc').text(task.description);
+    
+    $('#mTaskDesc').html(urlToLink(task.description));
+    
     $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH'));
     $('#taskModal').removeClass('hidden');
     renderStatus(sub);
@@ -178,7 +189,7 @@ async function loadComments() {
     cms.forEach(c => {
         const html = `
             <div class="flex gap-3">
-                <img src="${c.profiles.avatar_url || 'https://via.placeholder.com/100'}" class="w-8 h-8 rounded-full">
+                <img src="${c.profiles.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
                 <div>
                     <p class="text-xs font-bold">${c.profiles.full_name} <span class="font-normal text-gray-400 ml-2">${new Date(c.created_at).toLocaleTimeString()}</span></p>
                     <p class="text-sm">${c.content}</p>
@@ -240,7 +251,7 @@ async function loadPeople() {
     const sList = $('#studentList').empty();
     users.forEach(u => {
         const html = `<div class="flex items-center gap-4 py-2 border-b border-gray-50">
-            <img src="${u.avatar_url || 'https://via.placeholder.com/100'}" class="w-8 h-8 rounded-full">
+            <img src="${u.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
             <span class="text-sm">${u.full_name}</span>
         </div>`;
         if (u.role === 'hr' || u.role === 'admin') tList.append(html);
@@ -313,7 +324,7 @@ async function loadContents(type, containerId) {
         const linkButton = (item.link_url && item.link_url !== '#') ? `<a target="_blank" href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` : '';
         container.append(`
             <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
-                <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://via.placeholder.com/400x200'}')"></div>
+                <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://t4.ftcdn.net/jpg/06/57/37/01/360_F_657370150_pdNeG5pjI976ZasVbKN9VqH1rfoykdYU.jpg'}')"></div>
                 <div class="p-6">
                     <span class="text-[10px] font-bold text-red-700 uppercase tracking-widest">${item.type}</span>
                     <h3 class="font-bold text-lg mt-2 mb-3">${item.title}</h3>
