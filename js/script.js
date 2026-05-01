@@ -183,24 +183,49 @@ function renderStatus(sub) {
 }
 
 async function loadComments() {
-    const { data: cms } = await client.from('comments').select('*, profiles(full_name, avatar_url)').eq('assignment_id', activeTaskId);
+    const { data: cms, error } = await client
+        .from('comments')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('assignment_id', activeTaskId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error loading comments:", error);
+        return;
+    }
+
     const pubList = $('#publicComments').empty();
     const privList = $('#privateComments').empty();
-    cms.forEach(c => {
-        const html = `
-            <div class="flex gap-3">
-                <img src="${c.profiles.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
-                <div>
-                    <p class="text-xs font-bold">${c.profiles.full_name} <span class="font-normal text-gray-400 ml-2">${new Date(c.created_at).toLocaleTimeString()}</span></p>
-                    <p class="text-sm">${c.content}</p>
-                </div>
-            </div>`;
-        if (c.is_private) {
-            if (c.author_id === currentUser.id || currentUser.role === 'hr') privList.append(html);
-        } else {
-            pubList.append(html);
-        }
-    });
+
+    if (cms && cms.length > 0) {
+        cms.forEach(c => {
+            const commentContent = urlToLink(c.content);
+            
+            const html = `
+                <div class="flex gap-3 mb-4 animate__animated animate__fadeIn">
+                    <img src="${c.profiles?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" 
+                         class="w-8 h-8 rounded-full object-cover border border-gray-100">
+                    <div class="bg-gray-50 p-3 rounded-2xl rounded-tl-none flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-[11px] font-bold text-gray-800">${c.profiles?.full_name || 'Unknown'}</p>
+                            <span class="text-[9px] text-gray-400">${new Date(c.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>
+                        </div>
+                        <p class="text-sm text-gray-700 leading-relaxed">${commentContent}</p>
+                    </div>
+                </div>`;
+
+            if (c.is_private) {
+                if (c.author_id === currentUser.id || currentUser.role === 'hr') {
+                    privList.append(html);
+                }
+            } else {
+                pubList.append(html);
+            }
+        });
+    } else {
+        pubList.append('<p class="text-center text-[10px] text-gray-400 py-2">ยังไม่มีความคิดเห็นสาธารณะ</p>');
+        privList.append('<p class="text-center text-[10px] text-gray-400 py-2">ยังไม่มีความคิดเห็นส่วนตัว</p>');
+    }
 }
 
 async function sendComment(isPrivate) {
