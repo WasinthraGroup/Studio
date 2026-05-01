@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การมอบหมายงาน | ว.Studio</title>
+    <link rel="icon" href="Pics/Logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/assignmentspagescript.js" defer></script>
+    <style>
+        .nav-tab { @apply pb-4 px-2 text-sm font-bold transition-all border-b-2 border-transparent cursor-pointer text-gray-500; }
+        .nav-tab.active { @apply border-[#721c24] text-[#721c24]; }
+        .assignment-card:hover { background-color: #f8f9fa; }
+    </style>
+</head>
+<body class="bg-[#f8f9fa]">
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <button onclick="window.location.href='workshop.html'" class="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div class="text-xl font-bold text-[#721c24]">ว.Studio <span class="text-gray-400 font-medium ml-2 border-l pl-3 text-lg">Workshop</span></div>
+            </div>
+            
+            <div class="flex gap-8">
+                <div onclick="switchTab('stream')" id="tab-stream" class="nav-tab active">สตรีม</div>
+                <div onclick="switchTab('classwork')" id="tab-classwork" class="nav-tab">งานของชั้นเรียน</div>
+                <div onclick="switchTab('people')" id="tab-people" class="nav-tab">ผู้คน</div>
+            </div>
+
+            <div id="userProfile" class="flex items-center gap-3">
+                <img id="navAvatar" src="" class="w-8 h-8 rounded-full border">
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto py-8 px-4">
+        
+        <div id="section-stream" class="tab-content animate__animated animate__fadeIn">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-white border rounded-xl p-4 shadow-sm">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-3">กำหนดส่งเร็วๆ นี้</h4>
+                        <div id="upcomingTasks" class="text-sm text-gray-400 italic">ไม่มีงานที่กำลังจะมาถึง</div>
+                    </div>
+                </div>
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="bg-white border rounded-xl p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition">
+                        <img id="streamAvatar" src="" class="w-10 h-10 rounded-full">
+                        <span class="text-gray-400 text-sm">ประกาศบางสิ่งในเวิร์กชอปของคุณ...</span>
+                    </div>
+                    <div id="streamList" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-classwork" class="tab-content hidden animate__animated animate__fadeIn">
+            <div id="hrOnlyAction" class="hidden mb-6 text-right">
+                <button onclick="openCreateTaskModal()" class="bg-[#721c24] text-white px-6 py-2 rounded-full font-bold shadow-md">
+                    <i class="fa-solid fa-plus mr-2"></i>สร้างงาน
+                </button>
+            </div>
+            <div id="classworkList" class="space-y-6"></div>
+        </div>
+
+        <div id="section-people" class="tab-content hidden animate__animated animate__fadeIn">
+            <div class="bg-white rounded-xl border p-8">
+                <div class="mb-10">
+                    <h2 class="text-2xl text-[#721c24] border-b border-[#721c24] pb-2 mb-6 flex justify-between">
+                        ผู้ดูแล <i class="fa-solid fa-user-tie"></i>
+                    </h2>
+                    <div id="teacherList" class="space-y-4"></div>
+                </div>
+                <div>
+                    <h2 class="text-2xl text-[#721c24] border-b border-[#721c24] pb-2 mb-6 flex justify-between">
+                        เพื่อนร่วมเวิร์กชอป <i class="fa-solid fa-users"></i>
+                    </h2>
+                    <div id="studentList" class="space-y-4 text-gray-500">กำลังโหลดรายชื่อ...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="taskModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden flex flex-col">
+            <div class="border-b p-4 flex justify-between items-center">
+                <button onclick="closeTaskModal()" class="text-gray-500 hover:bg-gray-100 p-2 rounded-full">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <div class="flex gap-2">
+                    <span id="modalStatus" class="px-3 py-1 rounded-full text-xs font-bold"></span>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-2">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-[#721c24] text-white rounded-full flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <h2 id="mTaskTitle" class="text-2xl font-bold"></h2>
+                            <p class="text-sm text-gray-500">คะแนนเต็ม 100 • กำหนดส่ง <span id="mTaskDue"></span></p>
+                        </div>
+                    </div>
+                    <div id="mTaskDesc" class="text-gray-700 py-6 border-y mb-8"></div>
+                    
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-user-group"></i> ความคิดเห็นในชั้นเรียน</h3>
+                    <div id="publicComments" class="space-y-4 mb-6"></div>
+                    <div class="flex gap-3">
+                        <input type="text" id="publicMsg" placeholder="เพิ่มความคิดเห็นในชั้นเรียน..." class="flex-1 border-b py-2 outline-none focus:border-[#721c24]">
+                        <button onclick="sendComment(false)" class="text-[#721c24]"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white border rounded-xl p-6 shadow-md">
+                        <h3 class="font-bold mb-4">งานของคุณ</h3>
+                        <div id="submissionView">
+                            <input type="url" id="workUrl" placeholder="วางลิงก์งานที่นี่..." class="w-full border rounded-lg p-2 mb-3 text-sm">
+                            <button id="submitBtn" class="w-full py-2 bg-[#721c24] text-white rounded-lg font-bold">ส่งงาน</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border rounded-xl p-6 shadow-md">
+                        <h3 class="text-sm font-bold mb-4 text-gray-500"><i class="fa-solid fa-comment-dots mr-2"></i> ความคิดเห็นส่วนตัว</h3>
+                        <div id="privateComments" class="space-y-3 mb-4 max-h-[200px] overflow-y-auto text-sm"></div>
+                        <div class="flex gap-2">
+                            <input type="text" id="privateMsg" placeholder="คุยกับผู้ดูแล..." class="flex-1 border-b py-1 text-sm outline-none">
+                            <button onclick="sendComment(true)" class="text-[#721c24]"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
