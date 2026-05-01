@@ -145,6 +145,14 @@ async function loadClasswork() {
     });
 }
 
+function openCreateTaskModal() {
+    $('#createTaskModal').removeClass('hidden').css('display', 'flex');
+}
+
+function closeCreateTaskModal() {
+    $('#createTaskModal').addClass('hidden').css('display', 'none');
+}
+
 function urlToLink(text) {
     if (!text) return '-';
     const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
@@ -185,7 +193,10 @@ function renderStatus(sub) {
 async function loadComments() {
     const { data: cms, error } = await client
         .from('comments')
-        .select('*, profiles(full_name, avatar_url)')
+        .select(`
+            *,
+            profiles:author_id (full_name, avatar_url)
+        `)
         .eq('assignment_id', activeTaskId)
         .order('created_at', { ascending: true });
 
