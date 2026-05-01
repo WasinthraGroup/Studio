@@ -97,7 +97,12 @@ async function loadAssignmentsListSimple() {
 
 function initAssignmentsPage() {
     $('#navAvatar, #streamAvatar').attr('src', currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png');
-    if (currentUser.role === 'hr' || currentUser.role === 'admin') $('#hrOnlyAction').removeClass('hidden');
+    
+    if (currentUser.role === 'hr' || currentUser.role === 'admin') {
+        $('#hrOnlyAction').removeClass('hidden');
+        setupHRFeatures();
+    }
+    
     switchTab('stream');
     $('body').removeClass('hidden');
 }
@@ -373,35 +378,87 @@ async function loadContents(type, containerId) {
 
 function setupHRFeatures() {
     $('#hrContentPanel, #invitePanel, #hrAssignmentPanel').removeClass('hidden');
+
     $('#createInviteForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
         const expireInput = $('#inviteExpire').val(); 
         if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
+
         const dateObj = new Date(expireInput);
         const offset = dateObj.getTimezoneOffset() * 60000;
         const localISO = new Date(dateObj.getTime() - offset).toISOString();
         const token = crypto.randomUUID().replaceAll('-', '');
+
         const { error } = await client.from("invites").insert({ token: token, expires_at: localISO });
         if (!error) {
             const link = window.location.origin + "/register.html?token=" + token;
-            $('#inviteResult').html(`<p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p><input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()"><p class="text-[10px] text-gray-400 mt-1">*หมดอายุ: ${new Date(expireInput).toLocaleString('th-TH')}</p>`);
+            $('#inviteResult').html(`
+                <p class="text-xs font-bold mb-1 text-green-600">สร้างลิงก์สำเร็จ!</p>
+                <input value="${link}" class="w-full border p-2 text-sm bg-gray-50 rounded" readonly onclick="this.select()">
+                <p class="text-[10px] text-gray-400 mt-1">*หมดอายุ: ${new Date(expireInput).toLocaleString('th-TH')}</p>
+            `);
+        } else {
+            Swal.fire("เกิดข้อผิดพลาด", error.message, "error");
         }
     });
 
     $('#createTaskForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
-        const task = { title: $('#taskTitle').val(), description: $('#taskDesc').val(), due_date: $('#taskDue').val() };
+        
+        const task = { 
+            title: $('#taskTitle').val().trim(), 
+            description: $('#taskDesc').val().trim(), 
+            due_date: $('#taskDue').val() 
+        };
+
+        if (!task.title || !task.due_date) {
+            return Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุหัวข้อและวันที่กำหนดส่ง", "warning");
+        }
+
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
         const { error } = await client.from('assignments').insert([task]);
-        if (!error) { Swal.fire('สำเร็จ', 'มอบหมายงานแล้ว', 'success'); this.reset(); loadAssignmentsListSimple(); }
+        
+        if (!error) { 
+            Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อยแล้ว', 'success'); 
+            this.reset(); 
+            
+            if (typeof closeCreateTaskModal === "function") closeCreateTaskModal();
+
+            const currentPage = window.location.pathname.split("/").pop();
+            if (currentPage === 'assignments.html') {
+                if (typeof loadStream === "function") loadStream();
+                if (typeof loadClasswork === "function") loadClasswork();
+            } else {
+                if (typeof loadAssignmentsListSimple === "function") loadAssignmentsListSimple();
+            }
+        } else {
+            console.error("Insert Error:", error);
+            Swal.fire('ล้มเหลว', "ไม่สามารถสร้างงานได้: " + error.message, 'error');
+        }
     });
 
     $('#addContentForm').off('submit').on('submit', async function(e) {
         e.preventDefault();
-        const formData = { type: $('#contentType').val(), title: $('#contentTitle').val().trim(), description: $('#contentDesc').val().trim(), image_url: $('#contentImage').val().trim(), link_url: $('#contentLink').val().trim() };
+        const formData = { 
+            type: $('#contentType').val(), 
+            title: $('#contentTitle').val().trim(), 
+            description: $('#contentDesc').val().trim(), 
+            image_url: $('#contentImage').val().trim(), 
+            link_url: $('#contentLink').val().trim() 
+        };
+
         if (!formData.title || !formData.description) return Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
+
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
         const { error } = await client.from('contents').insert([formData]);
-        if (!error) { await Swal.fire('สำเร็จ!', 'เพิ่มเนื้อหาเรียบร้อยแล้ว', 'success'); location.reload(); }
+        
+        if (!error) { 
+            await Swal.fire('สำเร็จ!', 'เพิ่มเนื้อหาเรียบร้อยแล้ว', 'success'); 
+            location.reload(); 
+        } else {
+            Swal.fire('ล้มเหลว', error.message, 'error');
+        }
     });
 }
 
