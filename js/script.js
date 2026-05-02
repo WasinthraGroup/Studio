@@ -148,17 +148,15 @@ function switchTab(tab) {
     if (tab === 'people') loadPeople();
 }
 
-let currentOpenTaskId = null; // ตัวแปรเก็บ ID งานที่เปิดอยู่
+let currentOpenTaskId = null; 
 
 async function viewTaskDetails(taskId) {
     currentOpenTaskId = taskId;
     const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
 
-    // 1. เคลียร์ Feedback เดิมก่อน
     $('#feedbackSection').addClass('hidden');
 
     if (isHR) {
-        // --- ถ้าเป็น HR: วาดรายการรายชื่อ และปุ่มตรวจงาน ---
         $('#submissionTitle').text('การตอบกลับจากพนักงาน');
         $('#submissionView').html(`
             <div class="space-y-4">
@@ -167,11 +165,9 @@ async function viewTaskDetails(taskId) {
                 </div>
             </div>
         `);
-        loadSubmissionsForHR(taskId); // เรียกฟังก์ชันที่ไปดึงปุ่มตรวจงานมาใส่
+        loadSubmissionsForHR(taskId); 
     } else {
-        // --- ถ้าเป็น Staff: วาดช่องส่งงานปกติ ---
         $('#submissionTitle').text('งานของคุณ');
-        // เรียกฟังก์ชันเช็คว่าเคยส่งหรือยัง เพื่อโชว์สถานะหรือช่องส่ง
         checkUserSubmission(taskId); 
     }
 
@@ -180,7 +176,6 @@ async function viewTaskDetails(taskId) {
 
 
 
-// 1. ฟังก์ชันเปิด Modal ตรวจงาน (คงเดิมตามที่คุณส่งมา)
 function openCheckModal(id, currentStatus, currentFeedback) {
     $('#targetWorkId').val(id);
     $('#workStatus').val(currentStatus || 'pending');
@@ -192,13 +187,10 @@ function closeCheckWorkModal() {
     $('#checkWorkModal').addClass('hidden');
 }
 
-// 2. ฟังก์ชันโหลดรายชื่อคนส่งงานมาโชว์ใน taskModal (สำหรับ HR เท่านั้น)
 async function loadSubmissionsForHR(taskId) {
     const listContainer = $('#hrSubmissionsList');
     listContainer.html('<p class="text-center py-4 text-gray-400 text-xs">กำลังโหลด...</p>');
 
-    // ดึงข้อมูลการส่งงาน (จากตารางที่คุณใช้เก็บงานที่เด็กส่ง เช่น submissions)
-    // หมายเหตุ: ตารางนี้ควรมีคอลัมน์ task_id เพื่อแยกงานแต่ละชิ้น
     const { data: submissions, error } = await client
         .from('submissions') 
         .select('*, profiles(full_name, avatar_url, username)')
@@ -245,20 +237,18 @@ async function loadSubmissionsForHR(taskId) {
     });
 }
 
-// 3. ฟังก์ชัน Submit ผลการตรวจ (ปรับปรุงเล็กน้อย)
 $('#checkWorkForm').off('submit').on('submit', async function(e) {
     e.preventDefault();
     const workId = $('#targetWorkId').val();
     const status = $('#workStatus').val();
     const feedback = $('#workFeedback').val();
 
-    // ปิด Modal ตรวจก่อนโชว์ SweetAlert เพื่อไม่ให้บังกัน
     closeCheckWorkModal();
 
     Swal.fire({ title: 'กำลังบันทึกผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
-        const { error } = await client.from('submissions') // เปลี่ยนให้ตรงกับตารางที่คุณใช้เก็บงาน
+        const { error } = await client.from('submissions') 
             .update({ 
                 status: status, 
                 feedback: feedback,
@@ -275,8 +265,7 @@ $('#checkWorkForm').off('submit').on('submit', async function(e) {
             confirmButtonColor: '#721c24'
         });
 
-        // หลังจากตรวจเสร็จ ให้รีโหลดรายชื่อคนส่งงานใน Modal นั้นใหม่
-        // โดยดึง taskId จาก context ปัจจุบัน (ถ้ามีเก็บไว้)
+      
         if (typeof currentOpenTaskId !== 'undefined') {
             loadSubmissionsForHR(currentOpenTaskId);
         }
@@ -284,7 +273,7 @@ $('#checkWorkForm').off('submit').on('submit', async function(e) {
     } catch (err) {
         console.error(err);
         Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
-        $('#checkWorkModal').removeClass('hidden'); // ถ้าพังให้เปิด Modal ตรวจคืนมา
+        $('#checkWorkModal').removeClass('hidden'); 
     }
 });
 
@@ -428,11 +417,9 @@ async function openTaskModal(id) {
     activeTaskId = id;
     const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
 
-    // โชว์ Loading ก่อนเพื่อความลื่นไหล
     $('#submissionView').html('<div class="flex justify-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-[#721c24] text-xl"></i></div>');
 
     try {
-        // 1. ดึงรายละเอียดงานหลัก
         const { data: task, error: taskError } = await client
             .from('assignments')
             .select('*')
@@ -441,13 +428,11 @@ async function openTaskModal(id) {
 
         if (taskError) throw taskError;
 
-        // อัปเดต UI พื้นฐาน
         $('#mTaskTitle').text(task.title);
-        $('#mTaskDesc').html(task.description || 'ไม่มีรายละเอียด');
+        $('#mTaskDesc').html(urlToLink(task.description) || 'ไม่มีรายละเอียด');
         $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH'));
 
         if (isHR) {
-            // --- ฝั่ง HR ---
             $('#submissionView').html(`
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
@@ -456,8 +441,6 @@ async function openTaskModal(id) {
             `);
             loadSubmissionsForHR(id);
         } else {
-            // --- ฝั่ง Staff (คนส่ง) ---
-            // ดึงข้อมูลการส่งงานจากตาราง submissions (ที่เราเพิ่งรัน SQL ไป)
             const { data: subData, error: subError } = await client
                 .from('submissions')
                 .select('*')
@@ -469,7 +452,6 @@ async function openTaskModal(id) {
             const sub = (subData && subData.length > 0) ? subData[0] : null;
 
             if (!sub) {
-                // กรณี "ยังไม่เคยส่ง" -> โชว์ช่องให้กรอก URL
                 $('#submissionView').html(`
                     <div class="space-y-3">
                         <input type="url" id="workUrl" placeholder="วางลิงก์งานของคุณ (เช่น Google Drive, Canva)..." 
@@ -481,7 +463,6 @@ async function openTaskModal(id) {
                     </div>
                 `);
             } else {
-                // กรณี "ส่งแล้ว" -> โชว์สถานะ
                 renderStatus(sub); 
             }
         }
@@ -590,7 +571,7 @@ async function submitWork(taskId) {
         Swal.fire('ส่งงานไม่สำเร็จ', error.message, 'error');
     } else {
         Swal.fire('สำเร็จ!', 'ส่งงานของคุณเรียบร้อยแล้ว', 'success');
-        openTaskModal(taskId); // รีโหลด Modal เพื่อโชว์สถานะใหม่
+        openTaskModal(taskId); 
     }
 }
 
@@ -624,8 +605,8 @@ async function loadPeople() {
 
 function closeTaskModal() {
     $('#taskModal').addClass('hidden');
-    currentOpenTaskId = null; // ล้างค่า ID งาน
-    $('#hrSubmissionsList').empty(); // ล้างรายการเก่าทิ้ง
+    currentOpenTaskId = null;
+    $('#hrSubmissionsList').empty();
 }
 function renderCalendar(userId, role) {
     const calendarEl = document.getElementById('calendar');
