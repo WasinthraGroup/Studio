@@ -34,26 +34,60 @@ $(document).ready(async function() {
 
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
-        const userInput = $('#username').val().trim();
+        const userInput = $('#username').val().trim().toLowerCase(); // รับค่า Username หรือ Email
         const password = $('#password').val();
+
         if (!userInput || !password) {
             Swal.fire({ icon: 'info', title: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
             return;
         }
+
         Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
+
         try {
-            let loginEmail = userInput.includes('@') ? userInput : userInput + "@gmail.com";
+            let finalEmail = userInput;
+
+            // 1. ตรวจสอบว่าสิ่งที่กรอกมาเป็น Username หรือ Email
+            if (!userInput.includes('@')) {
+                // ถ้าเป็น Username ให้ไปค้นหา Email จริงจากตาราง profiles
+                const { data: profile, error: profileError } = await client
+                    .from('profiles')
+                    .select('email')
+                    .eq('username', userInput)
+                    .single();
+
+                if (profileError || !profile || !profile.email) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'ไม่พบชื่อผู้ใช้งาน', 
+                        text: 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง' 
+                    });
+                    return;
+                }
+                
+                // นำอีเมลที่ผูกไว้กับ Username นั้นมาใช้ Login
+                finalEmail = profile.email;
+            }
+
+            // 2. ทำการ Authentication ด้วย Email ที่ได้มา
             const { error: authError } = await client.auth.signInWithPassword({
-                email: loginEmail,
+                email: finalEmail,
                 password: password
             });
+
             if (authError) {
-                Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'เข้าสู่ระบบไม่สำเร็จ', 
+                    text: 'รหัสผ่านไม่ถูกต้อง' 
+                });
             } else {
+                // Login สำเร็จ
                 window.location.href = 'workshop.html';
             }
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง' });
+            console.error("Login Error:", err);
+            Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง', text: 'กรุณาลองใหม่ในภายหลัง' });
         }
     });
 
