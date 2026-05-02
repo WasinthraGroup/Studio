@@ -480,17 +480,45 @@ async function openTaskModal(id) {
 }
 
 function renderStatus(sub) {
-    const badge = $('#modalStatus');
-    badge.removeClass('bg-blue-100 text-blue-600 bg-green-100 text-green-600');
-    if (!sub) {
-        badge.text('Assigned').addClass('bg-blue-100 text-blue-600');
-        $('#workUrl').val('').attr('disabled', false);
-        $('#submitBtn').text('ส่งงาน').attr('onclick', 'submitWork()').removeClass('bg-gray-500').addClass('bg-[#721c24]');
-    } else {
-        badge.text('Turned in').addClass('bg-green-100 text-green-600');
-        $('#workUrl').val(sub.submission_url).attr('disabled', true);
-        $('#submitBtn').text('ยกเลิกการส่ง').attr('onclick', 'unsubmitWork()').removeClass('bg-[#721c24]').addClass('bg-gray-500');
-    }
+    const container = $('#submissionView');
+    if (!sub) return; 
+
+    const statusMap = {
+        pending: { text: 'รอตรวจ', color: 'bg-yellow-100 text-yellow-700', icon: 'fa-clock' },
+        approved: { text: 'ผ่านแล้ว', color: 'bg-green-100 text-green-700', icon: 'fa-check-circle' },
+        rejected: { text: 'ต้องแก้ไข', color: 'bg-red-100 text-red-700', icon: 'fa-circle-exclamation' }
+    };
+
+    const s = statusMap[sub.status] || statusMap.pending;
+
+    container.html(`
+        <div class="p-4 rounded-xl border ${s.color} mb-4">
+            <div class="flex items-center gap-3 font-bold mb-2">
+                <i class="fa-solid ${s.icon}"></i>
+                <span>สถานะ: ${s.text}</span>
+            </div>
+            <p class="text-[10px] opacity-80 mb-3">ส่งเมื่อ: ${new Date(sub.created_at).toLocaleString('th-TH')}</p>
+            <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
+                <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
+            </a>
+        </div>
+        
+        ${sub.status === 'rejected' ? `
+            <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                <p class="text-[10px] font-bold text-red-500 uppercase mb-1">สิ่งที่ต้องแก้ไข:</p>
+                <p class="text-sm text-gray-700 italic">${sub.feedback || 'ผู้ดูแลไม่ได้ระบุรายละเอียดเพิ่มเติม'}</p>
+                <button onclick="reSubmit('${sub.task_id}')" class="mt-4 w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold">
+                    ส่งงานใหม่อีกครั้ง
+                </button>
+            </div>
+        ` : ''}
+    `);
+    
+    $('#modalStatus').text(s.text).attr('class', `px-3 py-1 rounded-full text-xs font-bold ${s.color}`);
+}
+
+function reSubmit(taskId) {
+    openTaskModal(taskId); 
 }
 
 async function loadComments() {
@@ -558,23 +586,41 @@ async function sendComment(isPrivate) {
 }
 
 async function submitWork(taskId) {
-    const url = $('#workUrl').val();
-    //if (!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์งานก่อนส่ง', 'warning');
+    const url = $('#workUrl').val().trim();
 
-    Swal.fire({ title: 'กำลังส่งงาน...', didOpen: () => Swal.showLoading() });
+    Swal.fire({ 
+        title: 'กำลังส่งงาน...', 
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading() 
+    });
 
-    const { error } = await client.from('submissions').insert([{
-        task_id: taskId,
-        user_id: currentUser.id,
-        file_url: url,
-        status: 'pending'
-    }]);
+    try {
+        const { data, error } = await client.from('submissions').insert([{
+            task_id: taskId,
+            user_id: currentUser.id,
+            work_url: url || null, 
+            status: 'pending'
+        }]).select();
 
-    if (error) {
-        Swal.fire('ส่งงานไม่สำเร็จ', error.message, 'error');
-    } else {
-        Swal.fire('สำเร็จ!', 'ส่งงานของคุณเรียบร้อยแล้ว', 'success');
-        openTaskModal(taskId); 
+        if (error) throw error;
+
+        await Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: 'บันทึกการส่งงานเรียบร้อยแล้ว',
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        if (data && data.length > 0) {
+            renderStatus(data[0]); 
+        } else {
+            openTaskModal(taskId);
+        }
+
+    } catch (err) {
+        console.error("Submit Error:", err);
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
     }
 }
 
@@ -671,7 +717,16 @@ async function loadContents(type, containerId) {
     const container = $(`#${containerId}`);
     container.empty();
     data.forEach(item => {
-        const linkButton = (item.link_url && item.link_url !== '#') ? `<a target="_blank" href="${item.link_url}" class="mt-4 inline-block text-sm font-bold text-amber-700 hover:underline transition-all">เข้าชม →</a>` : '';
+    const linkButton = sub.work_url ? `
+        <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
+            <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
+        </a>
+    ` : `
+        <div class="text-center py-2 text-[10px] text-gray-500 italic bg-black/5 rounded-lg">
+            ส่งงานโดยไม่มีการแนบลิงก์
+        </div>
+    `;
+        
         container.append(`
             <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
                 <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://t4.ftcdn.net/jpg/06/57/37/01/360_F_657370150_pdNeG5pjI976ZasVbKN9VqH1rfoykdYU.jpg'}')"></div>
