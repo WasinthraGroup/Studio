@@ -140,6 +140,45 @@
             </div>
         </div>
     </div>
+
+
+    <div id="createTaskModal" class="hidden fixed inset-0 bg-black/60 z-[101] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate__animated animate__zoomIn animate__faster">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-lg text-[#721c24]"><i class="fa-solid fa-plus-circle mr-2"></i>สร้างการมอบหมายงานใหม่</h3>
+                <button onclick="closeCreateTaskModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="createTaskForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">หัวข้อการมอบหมายงาน</label>
+                    <input type="text" id="taskTitle" required placeholder="เช่น ออกแบบ Logo วศินทรา" 
+                        class="w-full border rounded-xl p-3 outline-none focus:border-[#721c24] transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">รายละเอียดงาน</label>
+                    <textarea id="taskDesc" rows="4" placeholder="อธิบายรายละเอียดงานที่นี่..." 
+                        class="w-full border rounded-xl p-3 outline-none focus:border-[#721c24] transition-all"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">กำหนดส่ง (Due Date)</label>
+                    <input type="datetime-local" id="taskDue" required 
+                        class="w-full border rounded-xl p-3 outline-none focus:border-[#721c24] transition-all">
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeCreateTaskModal()" 
+                        class="flex-1 py-3 border rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-all">ยกเลิก</button>
+                    <button type="submit" 
+                        class="flex-1 py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg shadow-red-900/20 hover:opacity-90 active:scale-95 transition-all">
+                        มอบหมายงาน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
 </body>
      <footer class="bg-white border-t py-12 text-center mt-20">
         <div class="text-xl font-bold mb-4" style="color: var(--thai-red);">ว.<span>Studio</span></div>
