@@ -117,19 +117,100 @@ function switchTab(tab) {
     if (tab === 'people') loadPeople();
 }
 
+
+
+
+
+
+
+
+function openAnnounceModal() {
+    if (currentUser.role !== 'hr' && currentUser.role !== 'admin') {
+        return Swal.fire("ขออภัย", "เฉพาะผู้ดูแลเท่านั้นที่โพสต์ประกาศได้", "info");
+    }
+    $('#announceModal').removeClass('hidden').css('display', 'flex');
+    $('#announceText').focus();
+}
+
+function closeAnnounceModal() {
+    $('#announceModal').addClass('hidden').css('display', 'none');
+    $('#announceForm')[0].reset();
+}
+
+$(document).on('submit', '#announceForm', async function(e) {
+    e.preventDefault();
+    const content = $('#announceText').val().trim();
+    
+    if (!content) return;
+
+    Swal.fire({ title: 'กำลังโพสต์...', didOpen: () => Swal.showLoading() });
+
+    try {
+        const { error } = await client.from('contents').insert([{
+            type: 'announcement', 
+            title: 'ประกาศจากผู้ดูแล',
+            description: content,
+            author_id: currentUser.id 
+        }]);
+
+        if (error) throw error;
+
+        await Swal.fire('สำเร็จ', 'โพสต์ประกาศเรียบร้อยแล้ว', 'success');
+        closeAnnounceModal();
+        loadStream(); 
+    } catch (err) {
+        console.error("Announce Error:", err);
+        Swal.fire('ล้มเหลว', err.message, 'error');
+    }
+});
+
+
+
+
+
+
 async function loadStream() {
-    const { data: tasks } = await client.from('assignments').select('*').order('created_at', { ascending: false });
     const list = $('#streamList').empty();
-    tasks.forEach(t => {
-        list.append(`
-            <div onclick="openTaskModal('${t.id}')" class="bg-white border rounded-xl p-4 shadow-sm cursor-pointer hover:border-[#721c24] flex items-center gap-4 transition">
-                <div class="w-10 h-10 bg-[#721c24] text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-file-lines"></i></div>
-                <div>
-                    <p class="text-sm">HR ได้โพสต์งานใหม่: <span class="font-bold">${t.title}</span></p>
-                    <p class="text-[10px] text-gray-400">${new Date(t.created_at).toLocaleDateString('th-TH')}</p>
+    
+    const { data: tasks } = await client.from('assignments').select('*').order('created_at', { ascending: false });
+    
+    const { data: announces } = await client.from('contents').select('*').eq('type', 'announcement').order('created_at', { ascending: false });
+
+    let allStream = [
+        ...(tasks || []).map(t => ({ ...t, streamType: 'task' })),
+        ...(announces || []).map(a => ({ ...a, streamType: 'note' }))
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (allStream.length === 0) {
+        list.append('<p class="text-center py-10 text-gray-400 italic">งานว่าง</p>');
+        return;
+    }
+
+    allStream.forEach(item => {
+        if (item.streamType === 'task') {
+            list.append(`
+                <div onclick="openTaskModal('${item.id}')" class="bg-white border rounded-xl p-4 shadow-sm cursor-pointer hover:border-[#721c24] flex items-center gap-4 transition">
+                    <div class="w-10 h-10 bg-[#721c24] text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-file-lines"></i></div>
+                    <div>
+                        <p class="text-sm">HR ได้โพสต์งานใหม่: <span class="font-bold">${item.title}</span></p>
+                        <p class="text-[10px] text-gray-400">${new Date(item.created_at).toLocaleString('th-TH')}</p>
+                    </div>
                 </div>
-            </div>
-        `);
+            `);
+        } else {
+            list.append(`
+                <div class="bg-white border rounded-xl p-5 shadow-sm space-y-3">
+                    <div class="flex items-center gap-3">
+                        <img src="${currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
+                        <div>
+                            <p class="text-xs font-bold">ผู้ดูแลสตูดิโอ</p>
+                            <p class="text-[9px] text-gray-400">${new Date(item.created_at).toLocaleString('th-TH')}</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 leading-relaxed">${urlToLink(item.description)}</div>
+                </div>
+            `);
+        }
     });
 }
 
