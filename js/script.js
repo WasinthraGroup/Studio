@@ -213,27 +213,47 @@ async function loadSubmissionsForHR(taskId) {
     submissions.forEach(sub => {
         const avatar = sub.profiles?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
         const name = sub.profiles?.full_name || sub.profiles?.username || 'ไม่ทราบชื่อ';
-    
+
+        let submittedAt = "ไม่ระบุเวลา";
+        if (sub.submitted_at) {
+            const dateObj = new Date(sub.submitted_at);
+            if (!isNaN(dateObj)) {
+                submittedAt = dateObj.toLocaleString('th-TH', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: 'Asia/Bangkok'
+                });
+            }
+        }
+
         const hasUrl = sub.work_url && sub.work_url.trim() !== "";
-        
         const fileLink = hasUrl ? `
             <a href="${sub.work_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
-                <i class="fa-solid fa-link"></i> ดูไฟล์งานที่ส่ง
+                <i class="fa-solid fa-link"></i> ดูไฟล์งาน
             </a>
-        ` : '<span class="text-[10px] text-gray-400 italic">ไม่ได้แนบลิงก์งาน</span>';
-    
+        ` : '<span class="text-[10px] text-gray-400 italic">ไม่ได้แนบลิงก์</span>';
+
         listContainer.append(`
             <div class="py-4 flex justify-between items-center border-b last:border-0 border-gray-50 group">
                 <div class="flex items-center gap-3">
                     <img src="${avatar}" class="w-10 h-10 rounded-full border shadow-sm">
                     <div>
                         <p class="text-sm font-bold text-gray-700">${name}</p>
-                        ${fileLink}  </div>
+                        <div class="flex items-center gap-3">
+                            ${fileLink}
+                            <span class="text-[10px] text-gray-400">
+                                <i class="fa-regular fa-clock"></i> ${submittedAt}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColors[sub.status] || 'bg-gray-100'} uppercase">${sub.status}</span>
                     <button onclick="openCheckModal('${sub.id}', '${sub.status}', '${(sub.feedback || '').replace(/'/g, "\\'")}')" 
-                            class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-black transition">
+                            class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-black transition shadow-sm">
                         ตรวจงาน
                     </button>
                 </div>
