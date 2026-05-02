@@ -41,7 +41,6 @@ $(document).ready(async function() {
 
     updateNavbarUI(session);
 
-// --- ส่วน Login: ใช้ Username ค้นหา Email จริง ---
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
         const userInput = $('#username').val().trim().toLowerCase();
@@ -57,9 +56,7 @@ $(document).ready(async function() {
         try {
             let finalEmail = userInput;
 
-            // ถ้าผู้ใช้ไม่ได้กรอก @ (แปลว่าใส่ Username มา)
             if (!userInput.includes('@')) {
-                // ค้นหาแถวที่มี username ตรงกับที่กรอก เพื่อดึง email ในแถวนั้นออกมา
                 const { data: profile, error: profileError } = await client
                     .from('profiles')
                     .select('email')
@@ -71,11 +68,9 @@ $(document).ready(async function() {
                     return;
                 }
                 
-                // ได้ Email จริงที่ผูกไว้ในตาราง Profiles มาแล้ว
                 finalEmail = profile.email;
             }
 
-            // ใช้ Email ที่หาได้ + Password เพื่อเข้าสู่ระบบจริง
             const { error: authError } = await client.auth.signInWithPassword({
                 email: finalEmail,
                 password: password
@@ -156,6 +151,85 @@ function switchTab(tab) {
 
 
 
+
+function openCheckModal(id, currentStatus, currentFeedback) {
+    $('#targetWorkId').val(id);
+    $('#workStatus').val(currentStatus || 'pending');
+    $('#workFeedback').val(currentFeedback || '');
+    $('#checkWorkModal').removeClass('hidden');
+}
+
+function closeCheckWorkModal() {
+    $('#checkWorkModal').addClass('hidden');
+}
+
+async function loadAssignments() {
+    let query = client.from('assignments').select('*, profiles(username, full_name)');
+
+    if (currentUser.role !== 'hr' && currentUser.role !== 'admin') {
+        query = query.eq('user_id', currentUser.id);
+    }
+
+    const { data: assignments, error } = await query.order('created_at', { ascending: false });
+
+    if (error) return console.error(error);
+
+    const container = $('#assignmentsContainer');
+    container.empty();
+
+    assignments.forEach(work => {
+        const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
+        
+        const statusColors = { 
+            pending: 'bg-yellow-100 text-yellow-700', 
+            approved: 'bg-green-100 text-green-700', 
+            rejected: 'bg-red-100 text-red-700' 
+        };
+
+        container.append(`
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-full ${statusColors[work.status]} uppercase">${work.status}</span>
+                    <h3 class="text-lg font-bold mt-2">${work.title}</h3>
+                    <p class="text-sm text-gray-500">โดย: ${work.profiles?.full_name || work.profiles?.username}</p>
+                </div>
+                <div>
+                    ${isHR ? 
+                        `<button onclick="openCheckModal('${work.id}', '${work.status}', '${work.feedback}')" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-black transition">ตรวจงาน</button>` 
+                        : `<button class="text-gray-400 p-2"><i class="fa-solid fa-chevron-right"></i></button>`
+                    }
+                </div>
+            </div>
+        `);
+    });
+}
+
+$('#checkWorkForm').submit(async function(e) {
+    e.preventDefault();
+    const workId = $('#targetWorkId').val();
+    const status = $('#workStatus').val();
+    const feedback = $('#workFeedback').val();
+
+    Swal.fire({ title: 'กำลังบันทึกผล...', didOpen: () => Swal.showLoading() });
+
+    try {
+        const { error } = await client.from('assignments')
+            .update({ 
+                status: status, 
+                feedback: feedback,
+                checked_by: currentUser.id 
+            })
+            .eq('id', workId);
+
+        if (error) throw error;
+
+        closeCheckWorkModal();
+        Swal.fire('สำเร็จ!', 'บันทึกผลการตรวจเรียบร้อย', 'success');
+        loadAssignments(); 
+    } catch (err) {
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+    }
+});
 
 
 
@@ -496,10 +570,8 @@ async function loadContents(type, containerId) {
 function setupHRFeatures() {
     console.log("🛠️ Debug: setupHRFeatures() เริ่มต้นทำงาน");
 
-    // แสดงแผงควบคุมสำหรับ HR
     $('#hrContentPanel, #invitePanel, #hrAssignmentPanel').removeClass('hidden');
 
-    // --- สร้างงาน (ใช้ Delegation เพื่อกัน Silent Error) ---
     $(document).off('submit', '#createTaskForm').on('submit', '#createTaskForm', async function(e) {
         e.preventDefault();
         console.log("📝 Debug: ตรวจพบการ Submit ฟอร์มสร้างงาน");
@@ -530,10 +602,9 @@ function setupHRFeatures() {
             console.log("✅ Debug: บันทึกสำเร็จ!", data);
             await Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อยแล้ว', 'success'); 
             
-            this.reset(); // ล้างฟอร์ม
-            closeCreateTaskModal(); // ปิด Modal
+            this.reset(); 
+            closeCreateTaskModal();
 
-            // อัปเดตรายการงานทันทีโดยไม่ต้อง Refresh หน้า
             const currentPage = window.location.pathname.split("/").pop() || 'index.html';
             if (currentPage === 'assignments.html') {
                 loadStream();
@@ -548,7 +619,6 @@ function setupHRFeatures() {
         }
     });
 
-    // --- สร้าง Invite ---
     $(document).off('submit', '#createInviteForm').on('submit', '#createInviteForm', async function(e) {
         e.preventDefault();
         const expireInput = $('#inviteExpire').val(); 
@@ -604,7 +674,7 @@ async function initRegister() {
 
         await client.from("profiles").update({ 
             username: username, 
-            email: permanentEmail, // เก็บเมลไว้ค้นหาตอน Login
+            email: permanentEmail, 
             role: "staff", 
             full_name: username 
         }).eq("id", data.user.id);
