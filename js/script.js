@@ -556,7 +556,7 @@ async function sendComment(isPrivate) {
 
 async function submitWork(taskId) {
     const url = $('#workUrl').val();
-    if (!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์งานก่อนส่ง', 'warning');
+    //if (!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์งานก่อนส่ง', 'warning');
 
     Swal.fire({ title: 'กำลังส่งงาน...', didOpen: () => Swal.showLoading() });
 
