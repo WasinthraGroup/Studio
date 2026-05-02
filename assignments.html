@@ -22,6 +22,7 @@
     <nav class="bg-white border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-6">
+                
                 <button onclick="window.location.href='workshop.html'" class="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
@@ -216,9 +217,19 @@
                 <div class="space-y-6">
                     <div class="bg-white border rounded-xl p-6 shadow-md">
                         <h3 class="font-bold mb-4">งานของคุณ</h3>
-                        <div id="submissionView">
-                            <input type="url" id="workUrl" placeholder="วางลิงก์งานที่นี่..." class="w-full border rounded-lg p-2 mb-3 text-sm">
-                            <button id="submitBtn" class="w-full py-2 bg-[#721c24] text-white rounded-lg font-bold">ส่งงาน</button>
+                        <div class="bg-white border rounded-xl p-6 shadow-md">
+                            <h3 class="font-bold mb-4" id="submissionTitle">งานของคุณ</h3>
+                            
+                            <div id="submissionView">
+                                <div class="flex justify-center py-4">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-[#721c24] text-xl"></i>
+                                </div>
+                            </div>
+                        
+                            <div id="feedbackSection" class="hidden mt-4 p-3 bg-red-50 border border-red-100 rounded-lg">
+                                <p class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">คำแนะนำจากผู้ดูแล</p>
+                                <p id="feedbackText" class="text-sm text-gray-700 italic"></p>
+                            </div>
                         </div>
                     </div>
 
