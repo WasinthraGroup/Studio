@@ -154,31 +154,29 @@ async function viewTaskDetails(taskId) {
     currentOpenTaskId = taskId;
     const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
 
-    // --- เพิ่มส่วนนี้: ดึงรายละเอียดงานมาโชว์บนหัว Modal ---
-    const { data: task } = await client.from('assignments').select('*').eq('id', taskId).single();
-    if (task) {
-        $('#mTaskTitle').text(task.title);
-        $('#mTaskDesc').html(task.description || '<p class="text-gray-400 italic">ไม่มีคำอธิบายงาน</p>');
-        $('#mTaskDue').text(new Date(task.due_date).toLocaleString('th-TH'));
-    }
-    // ----------------------------------------------
+    // 1. เคลียร์ Feedback เดิมก่อน
+    $('#feedbackSection').addClass('hidden');
 
     if (isHR) {
+        // --- ถ้าเป็น HR: วาดรายการรายชื่อ และปุ่มตรวจงาน ---
+        $('#submissionTitle').text('การตอบกลับจากพนักงาน');
         $('#submissionView').html(`
             <div class="space-y-4">
-                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
-                <div id="hrSubmissionsList"></div>
+                <div id="hrSubmissionsList" class="divide-y max-h-[400px] overflow-y-auto">
+                    <p class="text-center py-4 text-gray-400 text-xs italic">กำลังดึงข้อมูลผู้ส่งงาน...</p>
+                </div>
             </div>
         `);
-        loadSubmissionsForHR(taskId);
+        loadSubmissionsForHR(taskId); // เรียกฟังก์ชันที่ไปดึงปุ่มตรวจงานมาใส่
     } else {
-        // ส่วนของ Staff (เช็คก่อนว่าเคยส่งหรือยัง เพื่อโชว์สถานะ)
+        // --- ถ้าเป็น Staff: วาดช่องส่งงานปกติ ---
+        $('#submissionTitle').text('งานของคุณ');
+        // เรียกฟังก์ชันเช็คว่าเคยส่งหรือยัง เพื่อโชว์สถานะหรือช่องส่ง
         checkUserSubmission(taskId); 
     }
 
     $('#taskModal').removeClass('hidden');
 }
-
 
 
 
@@ -237,7 +235,7 @@ async function loadSubmissionsForHR(taskId) {
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColors[sub.status] || 'bg-gray-100'} uppercase">${sub.status}</span>
-                    <button onclick="openCheckModal('${sub.id}', '${sub.status}', '${sub.feedback}')" 
+                    <button onclick="openCheckModal('${sub.id}', '${sub.status}', '${(sub.feedback || '').replace(/'/g, "\\'")}')" 
                             class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-black transition">
                         ตรวจงาน
                     </button>
