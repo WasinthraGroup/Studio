@@ -498,27 +498,28 @@ function renderStatus(sub) {
         const dateObj = new Date(sub.submitted_at);
         if (!isNaN(dateObj)) {
             displayDate = dateObj.toLocaleString('th-TH', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'Asia/Bangkok' // บังคับเป็นเวลาไทย
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
             });
         }
     }
 
+    let actionButtons = '';
+    if (sub.status === 'pending') {
+        actionButtons = `
+            <button onclick="unsubmitWork('${sub.id}', '${sub.task_id}')" 
+                class="mt-3 w-full py-2 border border-gray-300 text-gray-500 rounded-lg text-[10px] font-bold hover:bg-gray-50 transition">
+                ยกเลิกการส่งเพื่อแก้ไข
+            </button>
+        `;
+    }
+
     const hasUrl = sub.work_url && sub.work_url.trim() !== "";
-    
     const linkButton = hasUrl ? `
         <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all shadow-sm">
             <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
         </a>
-    ` : `
-        <div class="text-center py-2 text-[10px] text-gray-500 italic bg-gray-100 rounded-lg">
-            ส่งงานโดยไม่มีการแนบลิงก์
-        </div>
-    `;
+    ` : `<div class="text-center py-2 text-[10px] text-gray-500 italic bg-gray-100 rounded-lg">ไม่ได้แนบลิงก์งาน</div>`;
 
     container.html(`
         <div class="p-4 rounded-xl border ${s.color} mb-4">
@@ -528,14 +529,16 @@ function renderStatus(sub) {
             </div>
             <p class="text-[10px] opacity-80 mb-3 text-gray-600">ส่งเมื่อ: ${displayDate}</p>
             ${linkButton}
+            ${actionButtons}
         </div>
         
         ${sub.status === 'rejected' ? `
             <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                 <p class="text-[10px] font-bold text-red-500 uppercase mb-1">สิ่งที่ต้องแก้ไข:</p>
-                <p class="text-sm text-gray-700 italic">${sub.feedback || 'ผู้ดูแลไม่ได้ระบุรายละเอียดเพิ่มเติม'}</p>
-                <button onclick="reSubmit('${sub.task_id}')" class="mt-4 w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold shadow-md">
-                    ส่งงานใหม่อีกครั้ง
+                <p class="text-sm text-gray-700 italic mb-4">${sub.feedback || 'ไม่ได้ระบุรายละเอียด'}</p>
+                <button onclick="unsubmitWork('${sub.id}', '${sub.task_id}')" 
+                    class="w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold shadow-md hover:bg-red-600 transition">
+                    ส่งใหม่
                 </button>
             </div>
         ` : ''}
@@ -651,17 +654,43 @@ async function submitWork(taskId) {
     }
 }
 
-async function unsubmitWork() {
-    const { isConfirmed } = await Swal.fire({
-        title: 'ยกเลิกการส่งงาน?',
-        text: "คุณต้องการยกเลิกการส่งงานเพื่อแก้ไขใช่หรือไม่?",
+async function unsubmitWork(submissionId, taskId) {
+    const result = await Swal.fire({
+        title: 'ยืนยันการยกเลิก?',
+        text: "คุณต้องการยกเลิกการส่งงานนี้เพื่อแก้ไขใช่หรือไม่?",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ใช่, ยกเลิกการส่ง'
+        confirmButtonColor: '#721c24',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ใช่, ยกเลิกเลย',
+        cancelButtonText: 'ยกเลิก'
     });
-    if (isConfirmed) {
-        await client.from('student_assignments').delete().eq('assignment_id', activeTaskId).eq('user_id', currentUser.id);
-        openTaskModal(activeTaskId);
+
+    if (result.isConfirmed) {
+        Swal.fire({ title: 'กำลังดำเนินการ...', didOpen: () => Swal.showLoading() });
+
+        try {
+            const { error } = await client
+                .from('submissions')
+                .delete()
+                .eq('id', submissionId);
+
+            if (error) throw error;
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'ยกเลิกสำเร็จ',
+                text: 'คุณสามารถส่งงานใหม่ได้ทันที',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            openTaskModal(taskId);
+
+        } catch (err) {
+            console.error("Unsubmit Error:", err);
+            Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+        }
     }
 }
 
