@@ -154,8 +154,16 @@ async function viewTaskDetails(taskId) {
     currentOpenTaskId = taskId;
     const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
 
+    // --- เพิ่มส่วนนี้: ดึงรายละเอียดงานมาโชว์บนหัว Modal ---
+    const { data: task } = await client.from('assignments').select('*').eq('id', taskId).single();
+    if (task) {
+        $('#mTaskTitle').text(task.title);
+        $('#mTaskDesc').html(task.description || '<p class="text-gray-400 italic">ไม่มีคำอธิบายงาน</p>');
+        $('#mTaskDue').text(new Date(task.due_date).toLocaleString('th-TH'));
+    }
+    // ----------------------------------------------
+
     if (isHR) {
-        // เปลี่ยนหน้าตาช่อง Submission ให้เป็น List สำหรับ HR
         $('#submissionView').html(`
             <div class="space-y-4">
                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
@@ -164,11 +172,8 @@ async function viewTaskDetails(taskId) {
         `);
         loadSubmissionsForHR(taskId);
     } else {
-        // สำหรับ Staff ปกติ ให้โชว์ช่องส่งงานเดิม
-        $('#submissionView').html(`
-            <input type="url" id="workUrl" placeholder="วางลิงก์งานที่นี่..." class="w-full border rounded-lg p-2 mb-3 text-sm">
-            <button id="submitBtn" class="w-full py-2 bg-[#721c24] text-white rounded-lg font-bold">ส่งงาน</button>
-        `);
+        // ส่วนของ Staff (เช็คก่อนว่าเคยส่งหรือยัง เพื่อโชว์สถานะ)
+        checkUserSubmission(taskId); 
     }
 
     $('#taskModal').removeClass('hidden');
@@ -379,17 +384,27 @@ async function loadStream() {
 }
 
 async function loadClasswork() {
-    const { data: tasks } = await client.from('assignments').select('*').order('due_date', { ascending: true });
-    const list = $('#classworkList').empty();
-    list.append(`<h2 class="text-[#721c24] text-xl font-bold border-b pb-2 mb-4">งานทั้งหมด</h2>`);
-    tasks.forEach(t => {
-        list.append(`
-            <div onclick="openTaskModal('${t.id}')" class="assignment-card bg-white border-b p-4 flex justify-between items-center cursor-pointer transition hover:bg-gray-50">
-                <div class="flex items-center gap-4">
-                    <i class="fa-solid fa-file-lines text-gray-400"></i>
-                    <span class="font-medium">${t.title}</span>
+    const { data: tasks, error } = await client.from('assignments').select('*').order('created_at', { ascending: false });
+    const container = $('#classworkList');
+    container.empty();
+
+    tasks.forEach(task => {
+        container.append(`
+            <div onclick="viewTaskDetails('${task.id}')" class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+                <div class="flex justify-between items-start">
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 bg-gray-100 text-[#721c24] rounded-full flex items-center justify-center text-xl group-hover:bg-[#721c24] group-hover:text-white transition">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">${task.title}</h3>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider">โพสต์เมื่อ: ${new Date(task.created_at).toLocaleDateString('th-TH')}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full border border-red-100">
+                        DUE: ${new Date(task.due_date).toLocaleDateString('th-TH')}
+                    </span>
                 </div>
-                <span class="text-xs text-gray-400">กำหนดส่ง ${new Date(t.due_date).toLocaleDateString('th-TH')}</span>
             </div>
         `);
     });
@@ -545,8 +560,11 @@ async function loadPeople() {
     });
 }
 
-function closeTaskModal() { $('#taskModal').addClass('hidden'); }
-
+function closeTaskModal() {
+    $('#taskModal').addClass('hidden');
+    currentOpenTaskId = null; // ล้างค่า ID งาน
+    $('#hrSubmissionsList').empty(); // ล้างรายการเก่าทิ้ง
+}
 function renderCalendar(userId, role) {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
