@@ -494,8 +494,8 @@ function renderStatus(sub) {
     const s = statusMap[sub.status] || statusMap.pending;
 
     let displayDate = "ไม่ระบุวันที่";
-    if (sub.created_at) {
-        const dateObj = new Date(sub.created_at);
+    if (sub.submitted_at) {
+        const dateObj = new Date(sub.submitted_at);
         if (!isNaN(dateObj)) {
             displayDate = dateObj.toLocaleString('th-TH', {
                 year: 'numeric',
