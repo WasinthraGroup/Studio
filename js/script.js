@@ -192,7 +192,7 @@ async function loadStream() {
                 <div onclick="openTaskModal('${item.id}')" class="bg-white border rounded-xl p-4 shadow-sm cursor-pointer hover:border-[#721c24] flex items-center gap-4 transition">
                     <div class="w-10 h-10 bg-[#721c24] text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-file-lines"></i></div>
                     <div>
-                        <p class="text-sm">HR ได้โพสต์งานใหม่: <span class="font-bold">${item.title}</span></p>
+                        <p class="text-sm">${currentUser?.full_name ? currentUser.full_name + ' ได้โพสต์งานใหม่: ' : 'งานใหม่: '}<span class="font-bold">${item.title}</span></p>
                         <p class="text-[10px] text-gray-400">${new Date(item.created_at).toLocaleString('th-TH')}</p>
                     </div>
                 </div>
@@ -203,7 +203,7 @@ async function loadStream() {
                     <div class="flex items-center gap-3">
                         <img src="${currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
                         <div>
-                            <p class="text-xs font-bold">โพสต์</p>
+                            <p class="text-xs font-bold">`${currentUser?.full_name ? 'โพสต์ใหม่ของ ' + currentUser.full_name + ': ' : 'โพสต์ใหม่: '}`</p>
                             <p class="text-[9px] text-gray-400">${new Date(item.created_at).toLocaleString('th-TH')}</p>
                         </div>
                     </div>
