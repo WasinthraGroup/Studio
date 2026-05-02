@@ -83,6 +83,40 @@
         </div>
     </div>
 
+    <div id="checkWorkModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate__animated animate__zoomIn animate__faster">
+            <div class="bg-[#1e293b] px-6 py-4 flex justify-between items-center text-white">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check"></i> ตรวจสอบผลงาน
+                </h3>
+                <button onclick="closeCheckWorkModal()" class="text-2xl hover:text-gray-300">&times;</button>
+            </div>
+    
+            <form id="checkWorkForm" class="p-6 space-y-5">
+                <input type="hidden" id="targetWorkId">
+                
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">สถานะการตรวจสอบ</label>
+                    <select id="workStatus" class="w-full border-gray-200 border p-3 rounded-xl mt-1 focus:ring-2 focus:ring-[#721c24] outline-none transition-all">
+                        <option value="pending">⏳ รอการตรวจสอบ</option>
+                        <option value="approved">✅ ผ่านการตรวจสอบ</option>
+                        <option value="rejected">❌ ให้แก้ไขใหม่</option>
+                    </select>
+                </div>
+    
+                <div>
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">ความคิดเห็น / Feedback</label>
+                    <textarea id="workFeedback" rows="4" class="w-full border-gray-200 border p-3 rounded-xl mt-1 focus:ring-2 focus:ring-[#721c24] outline-none transition-all" placeholder="ใส่ข้อความแนะนำที่นี่..."></textarea>
+                </div>
+    
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeCheckWorkModal()" class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">ยกเลิก</button>
+                    <button type="submit" class="flex-1 py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">ยืนยันผลการตรวจ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <main class="max-w-5xl mx-auto py-8 px-4">
         
         <div id="section-stream" class="tab-content animate__animated animate__fadeIn">
