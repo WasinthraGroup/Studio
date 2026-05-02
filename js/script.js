@@ -220,7 +220,7 @@ async function loadSubmissionsForHR(taskId) {
                     <img src="${avatar}" class="w-10 h-10 rounded-full border shadow-sm">
                     <div>
                         <p class="text-sm font-bold text-gray-700">${name}</p>
-                        <a href="${sub.work_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
+                        <a href="${sub.file_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
                             <i class="fa-solid fa-link"></i> ดูไฟล์งานที่ส่ง
                         </a>
                     </div>
@@ -563,7 +563,7 @@ async function submitWork(taskId) {
     const { error } = await client.from('submissions').insert([{
         task_id: taskId,
         user_id: currentUser.id,
-        work_url: url,
+        file_url: url,
         status: 'pending'
     }]);
 
