@@ -203,7 +203,7 @@ async function loadStream() {
                     <div class="flex items-center gap-3">
                         <img src="${currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" class="w-8 h-8 rounded-full">
                         <div>
-                            <p class="text-xs font-bold">ผู้ดูแลสตูดิโอ</p>
+                            <p class="text-xs font-bold">โพสต์</p>
                             <p class="text-[9px] text-gray-400">${new Date(item.created_at).toLocaleString('th-TH')}</p>
                         </div>
                     </div>
