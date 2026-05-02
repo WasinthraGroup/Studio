@@ -214,7 +214,9 @@ async function loadSubmissionsForHR(taskId) {
         const avatar = sub.profiles?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
         const name = sub.profiles?.full_name || sub.profiles?.username || 'ไม่ทราบชื่อ';
     
-        const fileLink = sub.work_url ? `
+        const hasUrl = sub.work_url && sub.work_url.trim() !== "";
+        
+        const fileLink = hasUrl ? `
             <a href="${sub.work_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
                 <i class="fa-solid fa-link"></i> ดูไฟล์งานที่ส่ง
             </a>
@@ -481,7 +483,7 @@ async function openTaskModal(id) {
 
 function renderStatus(sub) {
     const container = $('#submissionView');
-    if (!sub) return; 
+    if (!sub) return;
 
     const statusMap = {
         pending: { text: 'รอตรวจ', color: 'bg-yellow-100 text-yellow-700', icon: 'fa-clock' },
@@ -491,23 +493,48 @@ function renderStatus(sub) {
 
     const s = statusMap[sub.status] || statusMap.pending;
 
+    let displayDate = "ไม่ระบุวันที่";
+    if (sub.created_at) {
+        const dateObj = new Date(sub.created_at);
+        if (!isNaN(dateObj)) {
+            displayDate = dateObj.toLocaleString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Asia/Bangkok' // บังคับเป็นเวลาไทย
+            });
+        }
+    }
+
+    const hasUrl = sub.work_url && sub.work_url.trim() !== "";
+    
+    const linkButton = hasUrl ? `
+        <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all shadow-sm">
+            <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
+        </a>
+    ` : `
+        <div class="text-center py-2 text-[10px] text-gray-500 italic bg-gray-100 rounded-lg">
+            ส่งงานโดยไม่มีการแนบลิงก์
+        </div>
+    `;
+
     container.html(`
         <div class="p-4 rounded-xl border ${s.color} mb-4">
             <div class="flex items-center gap-3 font-bold mb-2">
                 <i class="fa-solid ${s.icon}"></i>
                 <span>สถานะ: ${s.text}</span>
             </div>
-            <p class="text-[10px] opacity-80 mb-3">ส่งเมื่อ: ${new Date(sub.created_at).toLocaleString('th-TH')}</p>
-            <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
-                <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
-            </a>
+            <p class="text-[10px] opacity-80 mb-3 text-gray-600">ส่งเมื่อ: ${displayDate}</p>
+            ${linkButton}
         </div>
         
         ${sub.status === 'rejected' ? `
             <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                 <p class="text-[10px] font-bold text-red-500 uppercase mb-1">สิ่งที่ต้องแก้ไข:</p>
                 <p class="text-sm text-gray-700 italic">${sub.feedback || 'ผู้ดูแลไม่ได้ระบุรายละเอียดเพิ่มเติม'}</p>
-                <button onclick="reSubmit('${sub.task_id}')" class="mt-4 w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold">
+                <button onclick="reSubmit('${sub.task_id}')" class="mt-4 w-full py-2 bg-red-500 text-white rounded-lg text-xs font-bold shadow-md">
                     ส่งงานใหม่อีกครั้ง
                 </button>
             </div>
