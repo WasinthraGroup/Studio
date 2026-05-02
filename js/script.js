@@ -32,9 +32,10 @@ $(document).ready(async function() {
 
     updateNavbarUI(session);
 
+// --- ส่วน Login: ใช้ Username ค้นหา Email จริง ---
     $('#loginForm').submit(async (e) => {
         e.preventDefault();
-        const userInput = $('#username').val().trim().toLowerCase(); // รับค่า Username หรือ Email
+        const userInput = $('#username').val().trim().toLowerCase();
         const password = $('#password').val();
 
         if (!userInput || !password) {
@@ -47,49 +48,41 @@ $(document).ready(async function() {
         try {
             let finalEmail = userInput;
 
-            // 1. ตรวจสอบว่าสิ่งที่กรอกมาเป็น Username หรือ Email
+            // ถ้าผู้ใช้ไม่ได้กรอก @ (แปลว่าใส่ Username มา)
             if (!userInput.includes('@')) {
-                // ถ้าเป็น Username ให้ไปค้นหา Email จริงจากตาราง profiles
+                // ค้นหาแถวที่มี username ตรงกับที่กรอก เพื่อดึง email ในแถวนั้นออกมา
                 const { data: profile, error: profileError } = await client
                     .from('profiles')
                     .select('email')
                     .eq('username', userInput)
                     .single();
 
-                if (profileError || !profile || !profile.email) {
-                    Swal.fire({ 
-                        icon: 'error', 
-                        title: 'ไม่พบชื่อผู้ใช้งาน', 
-                        text: 'กรุณาตรวจสอบชื่อผู้ใช้งานอีกครั้ง' 
-                    });
+                if (profileError || !profile) {
+                    Swal.fire({ icon: 'error', title: 'ไม่พบชื่อผู้ใช้งานนี้' });
                     return;
                 }
                 
-                // นำอีเมลที่ผูกไว้กับ Username นั้นมาใช้ Login
+                // ได้ Email จริงที่ผูกไว้ในตาราง Profiles มาแล้ว
                 finalEmail = profile.email;
             }
 
-            // 2. ทำการ Authentication ด้วย Email ที่ได้มา
+            // ใช้ Email ที่หาได้ + Password เพื่อเข้าสู่ระบบจริง
             const { error: authError } = await client.auth.signInWithPassword({
                 email: finalEmail,
                 password: password
             });
 
             if (authError) {
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'เข้าสู่ระบบไม่สำเร็จ', 
-                    text: 'รหัสผ่านไม่ถูกต้อง' 
-                });
+                Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ถูกต้อง' });
             } else {
-                // Login สำเร็จ
                 window.location.href = 'workshop.html';
             }
         } catch (err) {
             console.error("Login Error:", err);
-            Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง', text: 'กรุณาลองใหม่ในภายหลัง' });
+            Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง' });
         }
     });
+    
 
     $(document).on('click', '#logoutBtn', async () => {
         await client.auth.signOut();
