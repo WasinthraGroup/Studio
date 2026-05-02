@@ -647,36 +647,31 @@ function closeProfileModal() { $('#profileModal').addClass('hidden').css('displa
 $('#profileUpdateForm').submit(async function(e) {
     e.preventDefault();
     
-    // ดึงค่าใหม่จาก Input
     const newUsername = $('#editUsername').val().trim().toLowerCase();
     const newName = $('#editFullName').val().trim();
-    const newPass = $('#newProfilePass').val();
+    const newPass = $('#newProfilePass').val(); 
     const avatarFile = $('#avatarInput')[0].files[0];
 
-    if (!newUsername || !newName) {
-        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อผู้ใช้และชื่อ-นามสกุล', 'warning');
-    }
+    closeProfileModal();
 
-    Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+    Swal.fire({ 
+        title: 'กำลังบันทึก...', 
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading() 
+    });
 
     try {
         let avatarUrl = currentUser.avatar_url;
 
-        // 1. จัดการอัปโหลดรูปโปรไฟล์ (ถ้ามีการเลือกไฟล์ใหม่)
         if (avatarFile) {
             const fileName = `${currentUser.id}-${Date.now()}`;
             const { error: uploadError } = await client.storage.from('avatars').upload(fileName, avatarFile);
-            
             if (uploadError) throw uploadError;
-
             const { data: { publicUrl } } = client.storage.from('avatars').getPublicUrl(fileName);
             avatarUrl = publicUrl;
         }
 
-        // 2. อัปเดตข้อมูลในตาราง profiles 
-        // (แก้ไขเฉพาะ username, full_name และ avatar_url | ส่วน email จะยังคงเป็นค่าเดิมใน Database)
-        const { error: updateError } = await client
-            .from('profiles')
+        const { error: updateError } = await client.from('profiles')
             .update({ 
                 full_name: newName, 
                 username: newUsername, 
@@ -686,18 +681,30 @@ $('#profileUpdateForm').submit(async function(e) {
 
         if (updateError) throw updateError;
 
-        // 3. อัปเดิตรหัสผ่าน (ถ้ามีการกรอกรหัสผ่านใหม่)
-        if (newPass) {
+        if (newPass && newPass.trim() !== "") {
             const { error: passError } = await client.auth.updateUser({ password: newPass });
             if (passError) throw passError;
         }
 
-        await Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success');
-        location.reload(); // รีโหลดหน้าเพื่ออัปเดตข้อมูลล่าสุดใน currentUser
+        Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: 'อัปเดตข้อมูลเรียบร้อยแล้ว',
+            confirmButtonColor: '#721c24'
+        }).then(() => { 
+            location.reload(); 
+        });
 
     } catch (err) {
-        console.error("Update Profile Error:", err);
-        Swal.fire('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถอัปเดตข้อมูลได้', 'error');
+        console.error("Update Error:", err);
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: err.message,
+            confirmButtonColor: '#721c24'
+        }).then(() => {
+            $('#profileModal').removeClass('hidden');
+        });
     }
 });
 
