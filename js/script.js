@@ -426,16 +426,48 @@ function urlToLink(text) {
 
 async function openTaskModal(id) {
     activeTaskId = id;
-    const { data: task } = await client.from('assignments').select('*').eq('id', id).single();
-    const { data: sub } = await client.from('student_assignments').select('*').eq('assignment_id', id).eq('user_id', currentUser.id).single();
-    
+    const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
+
+    const { data: task, error: taskError } = await client
+        .from('assignments')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (taskError || !task) {
+        console.error("Error fetching task:", taskError);
+        return;
+    }
+
     $('#mTaskTitle').text(task.title);
-    
     $('#mTaskDesc').html(urlToLink(task.description));
-    
-    $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH'));
+    $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH', { 
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+    }));
+
+    if (isHR) {
+        $('#submissionView').html(`
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
+                <div id="hrSubmissionsList" class="divide-y">
+                    <p class="text-center py-4 text-gray-400 text-xs">กำลังโหลด...</p>
+                </div>
+            </div>
+        `);
+        loadSubmissionsForHR(id);
+    } else {
+        const { data: submissions } = await client
+            .from('student_assignments')
+            .select('*')
+            .eq('assignment_id', id)
+            .eq('user_id', currentUser.id);
+
+        const sub = (submissions && submissions.length > 0) ? submissions[0] : null;
+        
+        renderStatus(sub); 
+    }
+
     $('#taskModal').removeClass('hidden');
-    renderStatus(sub);
     loadComments();
 }
 
