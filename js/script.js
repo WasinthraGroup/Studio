@@ -148,72 +148,114 @@ function switchTab(tab) {
     if (tab === 'people') loadPeople();
 }
 
+let currentOpenTaskId = null; // ตัวแปรเก็บ ID งานที่เปิดอยู่
+
+async function viewTaskDetails(taskId) {
+    currentOpenTaskId = taskId;
+    const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
+
+    if (isHR) {
+        // เปลี่ยนหน้าตาช่อง Submission ให้เป็น List สำหรับ HR
+        $('#submissionView').html(`
+            <div class="space-y-4">
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
+                <div id="hrSubmissionsList"></div>
+            </div>
+        `);
+        loadSubmissionsForHR(taskId);
+    } else {
+        // สำหรับ Staff ปกติ ให้โชว์ช่องส่งงานเดิม
+        $('#submissionView').html(`
+            <input type="url" id="workUrl" placeholder="วางลิงก์งานที่นี่..." class="w-full border rounded-lg p-2 mb-3 text-sm">
+            <button id="submitBtn" class="w-full py-2 bg-[#721c24] text-white rounded-lg font-bold">ส่งงาน</button>
+        `);
+    }
+
+    $('#taskModal').removeClass('hidden');
+}
 
 
 
 
+// 1. ฟังก์ชันเปิด Modal ตรวจงาน (คงเดิมตามที่คุณส่งมา)
 function openCheckModal(id, currentStatus, currentFeedback) {
     $('#targetWorkId').val(id);
     $('#workStatus').val(currentStatus || 'pending');
     $('#workFeedback').val(currentFeedback || '');
-    $('#checkWorkModal').removeClass('hidden');
+    $('#checkWorkModal').removeClass('hidden').removeClass('animate__zoomOut').addClass('animate__zoomIn');
 }
 
 function closeCheckWorkModal() {
     $('#checkWorkModal').addClass('hidden');
 }
 
-async function loadAssignments() {
-    let query = client.from('assignments').select('*, profiles(username, full_name)');
+// 2. ฟังก์ชันโหลดรายชื่อคนส่งงานมาโชว์ใน taskModal (สำหรับ HR เท่านั้น)
+async function loadSubmissionsForHR(taskId) {
+    const listContainer = $('#hrSubmissionsList');
+    listContainer.html('<p class="text-center py-4 text-gray-400 text-xs">กำลังโหลด...</p>');
 
-    if (currentUser.role !== 'hr' && currentUser.role !== 'admin') {
-        query = query.eq('user_id', currentUser.id);
-    }
-
-    const { data: assignments, error } = await query.order('created_at', { ascending: false });
+    // ดึงข้อมูลการส่งงาน (จากตารางที่คุณใช้เก็บงานที่เด็กส่ง เช่น submissions)
+    // หมายเหตุ: ตารางนี้ควรมีคอลัมน์ task_id เพื่อแยกงานแต่ละชิ้น
+    const { data: submissions, error } = await client
+        .from('submissions') 
+        .select('*, profiles(full_name, avatar_url, username)')
+        .eq('task_id', taskId);
 
     if (error) return console.error(error);
+    listContainer.empty();
 
-    const container = $('#assignmentsContainer');
-    container.empty();
+    if (submissions.length === 0) {
+        listContainer.html('<p class="text-center py-8 text-gray-400 text-sm italic">ยังไม่มีผู้ส่งงานนี้</p>');
+        return;
+    }
 
-    assignments.forEach(work => {
-        const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
-        
-        const statusColors = { 
-            pending: 'bg-yellow-100 text-yellow-700', 
-            approved: 'bg-green-100 text-green-700', 
-            rejected: 'bg-red-100 text-red-700' 
-        };
+    const statusColors = { 
+        pending: 'bg-yellow-100 text-yellow-700', 
+        approved: 'bg-green-100 text-green-700', 
+        rejected: 'bg-red-100 text-red-700' 
+    };
 
-        container.append(`
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                <div>
-                    <span class="text-[10px] font-bold px-2 py-1 rounded-full ${statusColors[work.status]} uppercase">${work.status}</span>
-                    <h3 class="text-lg font-bold mt-2">${work.title}</h3>
-                    <p class="text-sm text-gray-500">โดย: ${work.profiles?.full_name || work.profiles?.username}</p>
+    submissions.forEach(sub => {
+        const avatar = sub.profiles?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';
+        const name = sub.profiles?.full_name || sub.profiles?.username || 'ไม่ทราบชื่อ';
+
+        listContainer.append(`
+            <div class="py-4 flex justify-between items-center border-b last:border-0 border-gray-50 group">
+                <div class="flex items-center gap-3">
+                    <img src="${avatar}" class="w-10 h-10 rounded-full border shadow-sm">
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">${name}</p>
+                        <a href="${sub.work_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
+                            <i class="fa-solid fa-link"></i> ดูไฟล์งานที่ส่ง
+                        </a>
+                    </div>
                 </div>
-                <div>
-                    ${isHR ? 
-                        `<button onclick="openCheckModal('${work.id}', '${work.status}', '${work.feedback}')" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-black transition">ตรวจงาน</button>` 
-                        : `<button class="text-gray-400 p-2"><i class="fa-solid fa-chevron-right"></i></button>`
-                    }
+                <div class="flex flex-col items-end gap-2">
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColors[sub.status] || 'bg-gray-100'} uppercase">${sub.status}</span>
+                    <button onclick="openCheckModal('${sub.id}', '${sub.status}', '${sub.feedback}')" 
+                            class="bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-black transition">
+                        ตรวจงาน
+                    </button>
                 </div>
             </div>
         `);
     });
 }
 
-$('#checkWorkForm').submit(async function(e) {
+// 3. ฟังก์ชัน Submit ผลการตรวจ (ปรับปรุงเล็กน้อย)
+$('#checkWorkForm').off('submit').on('submit', async function(e) {
     e.preventDefault();
     const workId = $('#targetWorkId').val();
     const status = $('#workStatus').val();
     const feedback = $('#workFeedback').val();
 
-    Swal.fire({ title: 'กำลังบันทึกผล...', didOpen: () => Swal.showLoading() });
+    // ปิด Modal ตรวจก่อนโชว์ SweetAlert เพื่อไม่ให้บังกัน
+    closeCheckWorkModal();
+
+    Swal.fire({ title: 'กำลังบันทึกผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
-        const { error } = await client.from('assignments')
+        const { error } = await client.from('submissions') // เปลี่ยนให้ตรงกับตารางที่คุณใช้เก็บงาน
             .update({ 
                 status: status, 
                 feedback: feedback,
@@ -223,11 +265,23 @@ $('#checkWorkForm').submit(async function(e) {
 
         if (error) throw error;
 
-        closeCheckWorkModal();
-        Swal.fire('สำเร็จ!', 'บันทึกผลการตรวจเรียบร้อย', 'success');
-        loadAssignments(); 
+        Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: 'บันทึกผลการตรวจเรียบร้อย',
+            confirmButtonColor: '#721c24'
+        });
+
+        // หลังจากตรวจเสร็จ ให้รีโหลดรายชื่อคนส่งงานใน Modal นั้นใหม่
+        // โดยดึง taskId จาก context ปัจจุบัน (ถ้ามีเก็บไว้)
+        if (typeof currentOpenTaskId !== 'undefined') {
+            loadSubmissionsForHR(currentOpenTaskId);
+        }
+
     } catch (err) {
+        console.error(err);
         Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+        $('#checkWorkModal').removeClass('hidden'); // ถ้าพังให้เปิด Modal ตรวจคืนมา
     }
 });
 
