@@ -148,9 +148,9 @@ $(document).on('submit', '#announceForm', async function(e) {
     try {
         const { error } = await client.from('contents').insert([{
             type: 'announcement', 
-            title: 'ประกาศจากผู้ดูแล',
+            title: 'โพสต์',
             description: content,
-            author_id: currentUser.id 
+            //author_id: currentUser.id 
         }]);
 
         if (error) throw error;
