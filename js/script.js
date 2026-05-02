@@ -428,47 +428,71 @@ async function openTaskModal(id) {
     activeTaskId = id;
     const isHR = (currentUser.role === 'hr' || currentUser.role === 'admin');
 
-    const { data: task, error: taskError } = await client
-        .from('assignments')
-        .select('*')
-        .eq('id', id)
-        .single();
+    // โชว์ Loading ก่อนเพื่อความลื่นไหล
+    $('#submissionView').html('<div class="flex justify-center py-4"><i class="fa-solid fa-circle-notch fa-spin text-[#721c24] text-xl"></i></div>');
 
-    if (taskError || !task) {
-        console.error("Error fetching task:", taskError);
-        return;
-    }
-
-    $('#mTaskTitle').text(task.title);
-    $('#mTaskDesc').html(urlToLink(task.description));
-    $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH', { 
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-    }));
-
-    if (isHR) {
-        $('#submissionView').html(`
-            <div class="space-y-4">
-                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
-                <div id="hrSubmissionsList" class="divide-y">
-                    <p class="text-center py-4 text-gray-400 text-xs">กำลังโหลด...</p>
-                </div>
-            </div>
-        `);
-        loadSubmissionsForHR(id);
-    } else {
-        const { data: submissions } = await client
-            .from('student_assignments')
+    try {
+        // 1. ดึงรายละเอียดงานหลัก
+        const { data: task, error: taskError } = await client
+            .from('assignments')
             .select('*')
-            .eq('assignment_id', id)
-            .eq('user_id', currentUser.id);
+            .eq('id', id)
+            .single();
 
-        const sub = (submissions && submissions.length > 0) ? submissions[0] : null;
-        
-        renderStatus(sub); 
+        if (taskError) throw taskError;
+
+        // อัปเดต UI พื้นฐาน
+        $('#mTaskTitle').text(task.title);
+        $('#mTaskDesc').html(task.description || 'ไม่มีรายละเอียด');
+        $('#mTaskDue').text(new Date(task.due_date).toLocaleDateString('th-TH'));
+
+        if (isHR) {
+            // --- ฝั่ง HR ---
+            $('#submissionView').html(`
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b pb-2">รายชื่อผู้ส่งงาน</h4>
+                    <div id="hrSubmissionsList" class="divide-y"></div>
+                </div>
+            `);
+            loadSubmissionsForHR(id);
+        } else {
+            // --- ฝั่ง Staff (คนส่ง) ---
+            // ดึงข้อมูลการส่งงานจากตาราง submissions (ที่เราเพิ่งรัน SQL ไป)
+            const { data: subData, error: subError } = await client
+                .from('submissions')
+                .select('*')
+                .eq('task_id', id)
+                .eq('user_id', currentUser.id);
+
+            if (subError) throw subError;
+
+            const sub = (subData && subData.length > 0) ? subData[0] : null;
+
+            if (!sub) {
+                // กรณี "ยังไม่เคยส่ง" -> โชว์ช่องให้กรอก URL
+                $('#submissionView').html(`
+                    <div class="space-y-3">
+                        <input type="url" id="workUrl" placeholder="วางลิงก์งานของคุณ (เช่น Google Drive, Canva)..." 
+                            class="w-full border rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#721c24] outline-none transition-all">
+                        <button onclick="submitWork('${id}')" 
+                            class="w-full py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all">
+                            ส่งงาน
+                        </button>
+                    </div>
+                `);
+            } else {
+                // กรณี "ส่งแล้ว" -> โชว์สถานะ
+                renderStatus(sub); 
+            }
+        }
+
+        $('#taskModal').removeClass('hidden');
+        if (typeof loadComments === 'function') loadComments();
+
+    } catch (err) {
+        console.error("Modal Error:", err);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลงานได้: ' + err.message, 'error');
     }
-
-    $('#taskModal').removeClass('hidden');
-    loadComments();
 }
 
 function renderStatus(sub) {
@@ -549,17 +573,25 @@ async function sendComment(isPrivate) {
     loadComments();
 }
 
-async function submitWork() {
+async function submitWork(taskId) {
     const url = $('#workUrl').val();
-    // if (!url) return Swal.fire('ลืมใส่ลิงก์!', 'กรุณาแนบลิงก์งานก่อนส่ง', 'warning');
-    await client.from('student_assignments').upsert({
-        assignment_id: activeTaskId,
+    if (!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์งานก่อนส่ง', 'warning');
+
+    Swal.fire({ title: 'กำลังส่งงาน...', didOpen: () => Swal.showLoading() });
+
+    const { error } = await client.from('submissions').insert([{
+        task_id: taskId,
         user_id: currentUser.id,
-        submission_url: url || "",
-        status: 'submitted'
-    });
-    Swal.fire('ส่งงานสำเร็จ!', '', 'success');
-    openTaskModal(activeTaskId);
+        work_url: url,
+        status: 'pending'
+    }]);
+
+    if (error) {
+        Swal.fire('ส่งงานไม่สำเร็จ', error.message, 'error');
+    } else {
+        Swal.fire('สำเร็จ!', 'ส่งงานของคุณเรียบร้อยแล้ว', 'success');
+        openTaskModal(taskId); // รีโหลด Modal เพื่อโชว์สถานะใหม่
+    }
 }
 
 async function unsubmitWork() {
