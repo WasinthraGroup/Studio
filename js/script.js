@@ -8,6 +8,15 @@ $(document).ready(async function() {
     const { data: { session } } = await client.auth.getSession();
     const currentPage = window.location.pathname.split("/").pop() || 'index.html';
 
+    if (session) {
+        const { data: profile } = await client
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+        currentUser = profile;
+    }
+
     if (currentPage === 'login.html') {
         if (session) { window.location.href = 'workshop.html'; return; }
     } 
