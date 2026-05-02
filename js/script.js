@@ -229,9 +229,9 @@ async function loadSubmissionsForHR(taskId) {
             }
         }
 
-        const hasUrl = sub.work_url && sub.work_url.trim() !== "";
+        const hasUrl = sub.file_url && sub.file_url.trim() !== "";
         const fileLink = hasUrl ? `
-            <a href="${sub.work_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
+            <a href="${sub.file_url}" target="_blank" class="text-[10px] text-blue-500 hover:underline">
                 <i class="fa-solid fa-link"></i> ดูไฟล์งาน
             </a>
         ` : '<span class="text-[10px] text-gray-400 italic">ไม่ได้แนบลิงก์</span>';
@@ -534,9 +534,9 @@ function renderStatus(sub) {
         `;
     }
 
-    const hasUrl = sub.work_url && sub.work_url.trim() !== "";
+    const hasUrl = sub.file_url && sub.file_url.trim() !== "";
     const linkButton = hasUrl ? `
-        <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all shadow-sm">
+        <a href="${sub.file_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all shadow-sm">
             <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
         </a>
     ` : `<div class="text-center py-2 text-[10px] text-gray-500 italic bg-gray-100 rounded-lg">ไม่ได้แนบลิงก์งาน</div>`;
@@ -648,7 +648,7 @@ async function submitWork(taskId) {
         const { data, error } = await client.from('submissions').insert([{
             task_id: taskId,
             user_id: currentUser.id,
-            work_url: url || null, 
+            file_url: url || null, 
             status: 'pending'
         }]).select();
 
@@ -793,8 +793,8 @@ async function loadContents(type, containerId) {
     const container = $(`#${containerId}`);
     container.empty();
     data.forEach(item => {
-    const linkButton = sub.work_url ? `
-        <a href="${sub.work_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
+    const linkButton = sub.file_url ? `
+        <a href="${sub.file_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
             <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
         </a>
     ` : `
