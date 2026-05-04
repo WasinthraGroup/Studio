@@ -817,13 +817,11 @@ async function loadContents(type, containerId) {
 }
 
 function setupHRFeatures() {
-    console.log("🛠️ Debug: setupHRFeatures() เริ่มต้นทำงาน");
 
     $('#hrContentPanel, #invitePanel, #hrAssignmentPanel').removeClass('hidden');
 
     $(document).off('submit', '#createTaskForm').on('submit', '#createTaskForm', async function(e) {
         e.preventDefault();
-        console.log("📝 Debug: ตรวจพบการ Submit ฟอร์มสร้างงาน");
 
         const task = { 
             title: $('#taskTitle').val()?.trim(), 
@@ -831,10 +829,8 @@ function setupHRFeatures() {
             due_date: $('#taskDue').val() 
         };
 
-        console.log("🔍 Debug: ข้อมูลที่จะส่งไป Supabase ->", task);
 
         if (!task.title || !task.due_date) {
-            console.warn("⚠️ Debug: ข้อมูลไม่ครบ");
             return Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุหัวข้อและวันที่", "warning");
         }
 
@@ -848,7 +844,6 @@ function setupHRFeatures() {
                 throw error;
             }
 
-            console.log("✅ Debug: บันทึกสำเร็จ!", data);
             await Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อยแล้ว', 'success'); 
             
             this.reset(); 
