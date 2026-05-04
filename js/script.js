@@ -792,9 +792,9 @@ async function loadContents(type, containerId) {
     if (error) return;
     const container = $(`#${containerId}`);
     container.empty();
-    data.forEach(sub => {
-    const linkButton = sub.file_url ? `
-        <a href="${sub.file_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
+    data.forEach(item => {
+    const linkButton = item.file_url ? `
+        <a href="${item.file_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
             <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
         </a>
     ` : `
