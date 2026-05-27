@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สารบัญอาหารไทย | ว.Studio</title>
+    <link rel="icon" href="Pics/Logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/script.js" defer></script>
+    <style>
+        :root {
+            --thai-red: #721c24;
+        }
+
+        .category-btn {
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #4b5563;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .category-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .category-btn.active {
+            background-color: #721c24;
+            color: #ffffff;
+            border-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-[#fdfaf5]">
+    <nav class="bg-white/90 backdrop-blur-md shadow-sm fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
+            <div class="flex items-center gap-10">
+                <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='.'"
+                    style="color: var(--thai-red);">
+                    ว.<span>Studio</span>
+                </div>
+                <div id="desktopNav" class="hidden md:flex items-center gap-8"></div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="navAction" class="relative"></div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 shadow-xl">
+            <div id="mobileMenuLinks" class="flex flex-col gap-4"></div>
+        </div>
+    </nav>
+
+    <header class="pt-40 pb-16 px-6 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 animate__animated animate__fadeInDown">
+            สารบัญอาหารไทย
+        </h1>
+        <p class="text-gray-500 max-w-3xl mx-auto animate__animated animate__fadeIn">ค้นหาอาหารไทยตามหมวดหมู่ ของหวาน
+            และอาหารจานหลัก ในรูปแบบสารบัญที่อ่านง่าย.</p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 pb-20 space-y-12">
+        <section class="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-10">
+            <div class="flex flex-col lg:flex-row gap-6 lg:items-center lg:justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">ค้นหาและเรียกดู</h2>
+                    <p class="text-gray-600 mt-2">พิมพ์ชื่อเมนู หรือเลือกหมวดหมู่เพื่อแสดงผลทันที.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="setCategory('ทั้งหมด')" id="btn-all" class="category-btn active">ทั้งหมด</button>
+                    <button onclick="setCategory('ของหวาน')" id="btn-dessert" class="category-btn">ของหวาน</button>
+                    <button onclick="setCategory('อาหารจานหลัก')" id="btn-main"
+                        class="category-btn">อาหารจานหลัก</button>
+                </div>
+            </div>
+            <div class="mt-8">
+                <input id="foodSearch" type="search" placeholder="ค้นหาเมนู เช่น ข้าวมันไก่, ทับทิมกรอบ"
+                    class="w-full border border-gray-200 rounded-3xl px-6 py-4 text-gray-700 focus:border-[#721c24] outline-none shadow-sm"
+                    oninput="renderFoodList()">
+            </div>
+        </section>
+
+        <section class="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-10">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">ผลลัพธ์</h3>
+                    <p id="resultInfo" class="text-sm text-gray-500 mt-1">รายการอาหารทั้งหมด</p>
+                </div>
+                <a href="rai-plai-doi.html"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#721c24] text-white font-bold shadow-lg hover:opacity-90 transition">กลับไปยัง
+                    Rai plai doi</a>
+            </div>
+            <div id="foodList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t py-12 text-center">
+        <div class="text-xl font-bold mb-4" style="color: var(--thai-red);">ว.<span>Studio</span></div>
+        <p class="text-xs text-gray-400">© 2026 ว.Studio. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const thaiFoods = [
+            { name: 'ข้าวมันไก่ (Khao Man Gai)', category: 'อาหารจานหลัก', description: 'ข้าวหุงมันหอมกรุ่น เสิร์ฟพร้อมเนื้อไก่นุ่มและน้ำจิ้มรสเด็ด', image: 'https://images.unsplash.com/photo-1604908177522-9e1bcebda81a?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ผัดไทย (Pad Thai)', category: 'อาหารจานหลัก', description: 'ก๋วยเตี๋ยวผัดซอสหวานเปรี้ยว เสิร์ฟพร้อมถั่วลิสงและมะนาว', image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ต้มยำกุ้ง (Tom Yum Goong)', category: 'อาหารจานหลัก', description: 'ซุปต้มยำรสจัดจ้านใส่กุ้งสดและสมุนไพรไทย', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80' },
+            { name: 'แกงเขียวหวาน (Green Curry)', category: 'อาหารจานหลัก', description: 'แกงกะทิรสครบรส พร้อมเนื้อสัตว์หรือไก่กับมะเขือ', image: 'https://images.unsplash.com/photo-1601041927412-8beeda4eff4f?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ส้มตำ (Som Tum)', category: 'อาหารจานหลัก', description: 'สลัดมะละกอปรุงรสเปรี้ยวหวานเผ็ด พร้อมถั่วลิสงและมะเขือเทศ', image: 'https://images.unsplash.com/photo-1529692236671-f1a4a86d7dca?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ขนมไทยรวม (Thai Desserts Set)', category: 'ของหวาน', description: 'ชุดขนมไทยหลากหลาย เช่น ทับทิมกรอบ ข้าวเหนียวมะม่วง และกลีบลำดวน', image: 'https://images.unsplash.com/photo-1561047029-3000e04cc201?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ทับทิมกรอบ (Tub Tim Krob)', category: 'ของหวาน', description: 'ของหวานเย็นใส่แตงไทย เสิร์ฟกับน้ำกะทิหวานมันและทับทิมกรอบ', image: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80' },
+            { name: 'บัวลอย (Bua Loy)', category: 'ของหวาน', description: 'แป้งข้าวเหนียวกลมทั้งคำ ในน้ำกะทิหอมหวาน', image: 'https://images.unsplash.com/photo-1607694806204-937c0d982c4d?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ข้าวเหนียวมะม่วง (Mango Sticky Rice)', category: 'ของหวาน', description: 'ข้าวเหนียวมูนราดด้วยน้ำกะทิ เสิร์ฟพร้อมมะม่วงสุกหวาน', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80' },
+            { name: 'ลอดช่องสิงคโปร์ (Lod Chong)', category: 'ของหวาน', description: 'ขนมหวานน้ำกะทิใส่ลอดช่องและถั่วเขียว', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80' }
+        ];
+
+        let activeCategory = 'ทั้งหมด';
+
+        function setCategory(category) {
+            activeCategory = category;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            const id = category === 'ทั้งหมด' ? 'btn-all' : category === 'ของหวาน' ? 'btn-dessert' : 'btn-main';
+            document.getElementById(id).classList.add('active');
+            renderFoodList();
+        }
+
+        function renderFoodList() {
+            const query = document.getElementById('foodSearch').value.trim().toLowerCase();
+            const filtered = thaiFoods.filter(item => {
+                const matchCategory = activeCategory === 'ทั้งหมด' || item.category === activeCategory;
+                const matchQuery = item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query);
+                return matchCategory && (!query || matchQuery);
+            });
+
+            const list = document.getElementById('foodList');
+            const info = document.getElementById('resultInfo');
+            list.innerHTML = '';
+            info.textContent = filtered.length === thaiFoods.length ? 'รายการอาหารทั้งหมด' : `พบ ${filtered.length} รายการ`;
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-500 italic py-10 col-span-full">ไม่พบเมนูที่ต้องการ ลองเปลี่ยนคำค้นหรือหมวดหมู่</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('article');
+                card.className = 'rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition bg-white';
+                card.innerHTML = `
+                    <div class="h-48 bg-gray-100 overflow-hidden">
+                        <img src="${item.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80'}" alt="${item.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-3">${item.name}</h4>
+                        <span class="inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider bg-[#fdf2f2] text-[#721c24] rounded-full mb-4">${item.category}</span>
+                        <p class="text-gray-600 leading-relaxed">${item.description}</p>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFoodList();
+        });
+    </script>
+</body>
+
+</html>
