@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,35 +8,42 @@
     <link rel="icon" href="Pics/Logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/script.js" defer></script>
     <style>
-        :root { --thai-red: #721c24; }
+        :root {
+            --thai-red: #721c24;
+        }
+
         .project-card:hover img {
             transform: scale(1.05);
         }
     </style>
 </head>
+
 <body class="bg-[#fdfaf5]">
 
     <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center h-20">
             <div class="flex items-center gap-10">
-                <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='.'" style="color: var(--thai-red);">
+                <div class="text-xl font-bold cursor-pointer" onclick="window.location.href='.'"
+                    style="color: var(--thai-red);">
                     ว.<span>Studio</span>
                 </div>
                 <div id="desktopNav" class="hidden md:flex items-center gap-8">
-                    </div>
+                </div>
             </div>
-            
+
             <div class="flex items-center gap-4">
                 <div id="navAction" class="relative"></div>
                 <button onclick="toggleMobileMenu()" class="md:hidden text-gray-600 p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7" />
                     </svg>
                 </button>
             </div>
@@ -58,10 +66,36 @@
         <button class="px-6 py-2 rounded-full bg-[#721c24] text-white font-bold text-sm shadow-lg">ทั้งหมด</button>
     </div>
 
+    <!-- <section class="max-w-7xl mx-auto px-6 mb-12">
+        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 animate__animated animate__fadeInUp">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2 space-y-5">
+                    <span class="inline-block text-sm font-bold uppercase tracking-widest text-[#721c24]">Featured
+                        Project</span>
+                    <h2 class="text-3xl font-bold text-gray-800">Rai plai doi (ไร่ปลายดอย)</h2>
+                    <p class="text-gray-600 leading-relaxed">
+                        โครงการสร้างสรรค์ที่รวบรวมแรงบันดาลใจจากภูมิปัญญาไทยและธรรมชาติของไร่ปลายดอย
+                        พร้อมเชื่อมโยงสู่ข้อมูลอาหารไทยที่หลากหลาย.</p>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="rai-plai-doi.html"
+                            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#721c24] text-white rounded-full font-bold shadow-lg hover:opacity-90 transition">ดูโครงการ
+                            Rai plai doi</a>
+                        <a href="projects.html"
+                            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-full font-bold hover:bg-gray-200 transition">ดูผลงานเพิ่มเติม</a>
+                    </div>
+                </div>
+                <div class="rounded-3xl overflow-hidden shadow-lg">
+                    <img src="Pics/About1.png" alt="Rai plai doi" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </section> -->
+
     <main class="max-w-7xl mx-auto px-6 pb-24">
         <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="col-span-full text-center py-20 text-gray-400">
-                <div class="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-red-700 rounded-full mb-4" role="status"></div>
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-red-700 rounded-full mb-4"
+                    role="status"></div>
                 <p>กำลังดึงข้อมูลผลงาน...</p>
             </div>
         </div>
@@ -72,22 +106,26 @@
         <p class="text-xs text-gray-400">© 2026 ว.Studio. All rights reserved.</p>
     </footer>
 
-    <div id="profileModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate__animated animate__zoomIn animate__faster">
+    <div id="profileModal"
+        class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate__animated animate__zoomIn animate__faster">
             <div class="bg-[#721c24] px-6 py-4 flex justify-between items-center text-white">
                 <h3 class="text-lg font-bold">ตั้งค่าบัญชี ว.Studio</h3>
                 <button onclick="closeProfileModal()" class="text-2xl hover:text-gray-300">&times;</button>
             </div>
             <form id="profileUpdateForm" class="p-6 space-y-5">
                 <div class="flex flex-col items-center gap-3">
-                    <img id="profilePreview" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover border-4 border-[#fdfaf5]">
+                    <img id="profilePreview" src="https://via.placeholder.com/100"
+                        class="w-24 h-24 rounded-full object-cover border-4 border-[#fdfaf5]">
                     <input type="file" id="avatarInput" accept="image/*" class="hidden">
                 </div>
                 <div>
                     <label class="text-[11px] font-bold text-gray-400 tracking-widest uppercase">ชื่อผู้ใช้</label>
                     <input type="text" id="editUsername" class="w-full border p-2.5 rounded-xl mt-1 outline-none">
                 </div>
-                <button type="submit" class="w-full py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg">บันทึกข้อมูล</button>
+                <button type="submit"
+                    class="w-full py-3 bg-[#721c24] text-white rounded-xl font-bold shadow-lg">บันทึกข้อมูล</button>
             </form>
         </div>
     </div>
@@ -101,4 +139,5 @@
         });
     </script>
 </body>
+
 </html>
