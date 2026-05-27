@@ -4,7 +4,7 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let activeTaskId = null;
 
-$(document).ready(async function() {
+$(document).ready(async function () {
     const { data: { session } } = await client.auth.getSession();
     const currentPage = window.location.pathname.split("/").pop() || 'index.html';
 
@@ -19,18 +19,18 @@ $(document).ready(async function() {
 
     if (currentPage === 'login.html') {
         if (session) { window.location.href = 'workshop.html'; return; }
-    } 
+    }
     else if (currentPage === 'workshop.html' || currentPage === 'assignments.html') {
         if (!session) { window.location.href = 'login.html'; return; }
         const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
         currentUser = profile;
-        
+
         if (currentPage === 'workshop.html') initWorkshop(session);
         if (currentPage === 'assignments.html') initAssignmentsPage();
-    } 
+    }
     else if (currentPage === 'register.html') {
         initRegister();
-    } 
+    }
     else if (currentPage === 'index.html' || currentPage === '') {
         loadContents('news', 'newsContainer');
         loadContents('projects', 'projectsContainer');
@@ -67,7 +67,7 @@ $(document).ready(async function() {
                     Swal.fire({ icon: 'error', title: 'ไม่พบชื่อผู้ใช้งานนี้' });
                     return;
                 }
-                
+
                 finalEmail = profile.email;
             }
 
@@ -86,7 +86,7 @@ $(document).ready(async function() {
             Swal.fire({ icon: 'error', title: 'ระบบขัดข้อง' });
         }
     });
-    
+
 
     $(document).on('click', '#logoutBtn', async () => {
         await client.auth.signOut();
@@ -128,12 +128,12 @@ async function loadAssignmentsListSimple() {
 
 function initAssignmentsPage() {
     $('#navAvatar, #streamAvatar').attr('src', currentUser.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png');
-    
+
     if (currentUser.role === 'hr' || currentUser.role === 'admin') {
         $('#hrOnlyAction').removeClass('hidden');
         setupHRFeatures();
     }
-    
+
     switchTab('stream');
     $('body').removeClass('hidden');
 }
@@ -148,7 +148,7 @@ function switchTab(tab) {
     if (tab === 'people') loadPeople();
 }
 
-let currentOpenTaskId = null; 
+let currentOpenTaskId = null;
 
 async function viewTaskDetails(taskId) {
     currentOpenTaskId = taskId;
@@ -165,10 +165,10 @@ async function viewTaskDetails(taskId) {
                 </div>
             </div>
         `);
-        loadSubmissionsForHR(taskId); 
+        loadSubmissionsForHR(taskId);
     } else {
         $('#submissionTitle').text('งานของคุณ');
-        checkUserSubmission(taskId); 
+        checkUserSubmission(taskId);
     }
 
     $('#taskModal').removeClass('hidden');
@@ -192,7 +192,7 @@ async function loadSubmissionsForHR(taskId) {
     listContainer.html('<p class="text-center py-4 text-gray-400 text-xs">กำลังโหลด...</p>');
 
     const { data: submissions, error } = await client
-        .from('submissions') 
+        .from('submissions')
         .select('*, profiles(full_name, avatar_url, username)')
         .eq('task_id', taskId);
 
@@ -204,10 +204,10 @@ async function loadSubmissionsForHR(taskId) {
         return;
     }
 
-    const statusColors = { 
-        pending: 'bg-yellow-100 text-yellow-700', 
-        approved: 'bg-green-100 text-green-700', 
-        rejected: 'bg-red-100 text-red-700' 
+    const statusColors = {
+        pending: 'bg-yellow-100 text-yellow-700',
+        approved: 'bg-green-100 text-green-700',
+        rejected: 'bg-red-100 text-red-700'
     };
 
     submissions.forEach(sub => {
@@ -262,7 +262,7 @@ async function loadSubmissionsForHR(taskId) {
     });
 }
 
-$('#checkWorkForm').off('submit').on('submit', async function(e) {
+$('#checkWorkForm').off('submit').on('submit', async function (e) {
     e.preventDefault();
     const workId = $('#targetWorkId').val();
     const status = $('#workStatus').val();
@@ -273,11 +273,11 @@ $('#checkWorkForm').off('submit').on('submit', async function(e) {
     Swal.fire({ title: 'กำลังบันทึกผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     try {
-        const { error } = await client.from('submissions') 
-            .update({ 
-                status: status, 
+        const { error } = await client.from('submissions')
+            .update({
+                status: status,
                 feedback: feedback,
-                checked_by: currentUser.id 
+                checked_by: currentUser.id
             })
             .eq('id', workId);
 
@@ -290,7 +290,7 @@ $('#checkWorkForm').off('submit').on('submit', async function(e) {
             confirmButtonColor: '#721c24'
         });
 
-      
+
         if (typeof currentOpenTaskId !== 'undefined') {
             loadSubmissionsForHR(currentOpenTaskId);
         }
@@ -298,7 +298,7 @@ $('#checkWorkForm').off('submit').on('submit', async function(e) {
     } catch (err) {
         console.error(err);
         Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
-        $('#checkWorkModal').removeClass('hidden'); 
+        $('#checkWorkModal').removeClass('hidden');
     }
 });
 
@@ -318,17 +318,17 @@ function closeAnnounceModal() {
     $('#announceForm')[0].reset();
 }
 
-$(document).on('submit', '#announceForm', async function(e) {
+$(document).on('submit', '#announceForm', async function (e) {
     e.preventDefault();
     const content = $('#announceText').val().trim();
-    
+
     if (!content) return;
 
     Swal.fire({ title: 'กำลังโพสต์...', didOpen: () => Swal.showLoading() });
 
     try {
         const { error } = await client.from('contents').insert([{
-            type: 'announcement', 
+            type: 'announcement',
             title: 'โพสต์',
             description: content,
             //author_id: currentUser.id 
@@ -338,7 +338,7 @@ $(document).on('submit', '#announceForm', async function(e) {
 
         await Swal.fire('สำเร็จ', 'โพสต์ประกาศเรียบร้อยแล้ว', 'success');
         closeAnnounceModal();
-        loadStream(); 
+        loadStream();
     } catch (err) {
         console.error("Announce Error:", err);
         Swal.fire('ล้มเหลว', err.message, 'error');
@@ -352,9 +352,9 @@ $(document).on('submit', '#announceForm', async function(e) {
 
 async function loadStream() {
     const list = $('#streamList').empty();
-    
+
     const { data: tasks } = await client.from('assignments').select('*').order('created_at', { ascending: false });
-    
+
     const { data: announces } = await client.from('contents').select('*').eq('type', 'announcement').order('created_at', { ascending: false });
 
     let allStream = [
@@ -488,7 +488,7 @@ async function openTaskModal(id) {
                     </div>
                 `);
             } else {
-                renderStatus(sub); 
+                renderStatus(sub);
             }
         }
 
@@ -563,12 +563,12 @@ function renderStatus(sub) {
             </div>
         ` : ''}
     `);
-    
+
     $('#modalStatus').text(s.text).attr('class', `px-3 py-1 rounded-full text-xs font-bold ${s.color}`);
 }
 
 function reSubmit(taskId) {
-    openTaskModal(taskId); 
+    openTaskModal(taskId);
 }
 
 async function loadComments() {
@@ -592,7 +592,7 @@ async function loadComments() {
     if (cms && cms.length > 0) {
         cms.forEach(c => {
             const commentContent = urlToLink(c.content);
-            
+
             const html = `
                 <div class="flex gap-3 mb-4 animate__animated animate__fadeIn">
                     <img src="${c.profiles?.avatar_url || 'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png'}" 
@@ -638,17 +638,17 @@ async function sendComment(isPrivate) {
 async function submitWork(taskId) {
     const url = $('#workUrl').val().trim();
 
-    Swal.fire({ 
-        title: 'กำลังส่งงาน...', 
+    Swal.fire({
+        title: 'กำลังส่งงาน...',
         allowOutsideClick: false,
-        didOpen: () => Swal.showLoading() 
+        didOpen: () => Swal.showLoading()
     });
 
     try {
         const { data, error } = await client.from('submissions').insert([{
             task_id: taskId,
             user_id: currentUser.id,
-            file_url: url || null, 
+            file_url: url || null,
             status: 'pending'
         }]).select();
 
@@ -663,7 +663,7 @@ async function submitWork(taskId) {
         });
 
         if (data && data.length > 0) {
-            renderStatus(data[0]); 
+            renderStatus(data[0]);
         } else {
             openTaskModal(taskId);
         }
@@ -745,7 +745,7 @@ function renderCalendar(userId, role) {
         editable: true,
         locale: 'th',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
-        eventClick: async function(info) {
+        eventClick: async function (info) {
             const { isConfirmed } = await Swal.fire({
                 title: 'ลบกิจกรรม?',
                 text: `ต้องการลบ "${info.event.title}" ใช่หรือไม่?`,
@@ -759,10 +759,10 @@ function renderCalendar(userId, role) {
                 if (!error) { info.event.remove(); }
             }
         },
-        eventChange: async function(info) {
+        eventChange: async function (info) {
             await client.from('schedules').update({ start_time: info.event.startStr, end_time: info.event.endStr }).eq('id', info.event.id);
         },
-        select: async function(info) {
+        select: async function (info) {
             const { value: type } = await Swal.fire({
                 title: 'เลือกประเภท',
                 input: 'radio',
@@ -777,7 +777,7 @@ function renderCalendar(userId, role) {
             }
             calendar.unselect();
         },
-        events: async function(info, successCallback) {
+        events: async function (info, successCallback) {
             let query = client.from('schedules').select('*');
             if (role !== 'hr') query = query.eq('user_id', userId);
             const { data } = await query;
@@ -793,16 +793,18 @@ async function loadContents(type, containerId) {
     const container = $(`#${containerId}`);
     container.empty();
     data.forEach(item => {
-    const linkButton = item.file_url ? `
-        <a href="${item.file_url}" target="_blank" class="block w-full py-2 bg-white/50 text-center rounded-lg text-xs hover:bg-white transition-all">
-            <i class="fa-solid fa-link mr-1"></i> ดูลิงก์ที่ส่งไป
+        const isProjectItem = type === 'projects' || ['projectsContainer', 'projectsGrid'].includes(containerId);
+        const targetUrl = item.file_url || item.page || item.link || (isProjectItem ? 'projects.html' : null);
+        const linkButton = targetUrl ? `
+        <a href="${targetUrl}" ${targetUrl.startsWith('http') ? 'target="_blank"' : ''} class="block w-full py-2 bg-[#721c24] text-white text-center rounded-lg text-xs hover:bg-[#5a141c] transition-all">
+            <i class="fa-solid fa-arrow-right mr-1"></i> ${isProjectItem ? 'ดูโครงการ' : 'ดูลิงก์ที่ส่งไป'}
         </a>
     ` : `
-        <div class="text-center py-2 text-[10px] text-gray-500 italic bg-black/5 rounded-lg">
-            ส่งงานโดยไม่มีการแนบลิงก์
+        <div class="text-center py-2 text-xs text-gray-500 italic">
+            ไม่มีลิงก์แนบ
         </div>
     `;
-        
+
         container.append(`
             <article class="card-thai bg-white overflow-hidden shadow-sm hover:shadow-md transition rounded-2xl border border-gray-100">
                 <div class="h-48 bg-gray-200 rounded-2xl bg-cover bg-center" style="background-image: url('${item.image_url || 'https://t4.ftcdn.net/jpg/06/57/37/01/360_F_657370150_pdNeG5pjI976ZasVbKN9VqH1rfoykdYU.jpg'}')"></div>
@@ -820,13 +822,13 @@ function setupHRFeatures() {
 
     $('#hrContentPanel, #invitePanel, #hrAssignmentPanel').removeClass('hidden');
 
-    $(document).off('submit', '#createTaskForm').on('submit', '#createTaskForm', async function(e) {
+    $(document).off('submit', '#createTaskForm').on('submit', '#createTaskForm', async function (e) {
         e.preventDefault();
 
-        const task = { 
-            title: $('#taskTitle').val()?.trim(), 
-            description: $('#taskDesc').val()?.trim(), 
-            due_date: $('#taskDue').val() 
+        const task = {
+            title: $('#taskTitle').val()?.trim(),
+            description: $('#taskDesc').val()?.trim(),
+            due_date: $('#taskDue').val()
         };
 
 
@@ -838,15 +840,15 @@ function setupHRFeatures() {
 
         try {
             const { data, error } = await client.from('assignments').insert([task]).select();
-            
+
             if (error) {
                 console.error("❌ Debug: Supabase Error ->", error);
                 throw error;
             }
 
-            await Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อยแล้ว', 'success'); 
-            
-            this.reset(); 
+            await Swal.fire('สำเร็จ', 'มอบหมายงานเรียบร้อยแล้ว', 'success');
+
+            this.reset();
             closeCreateTaskModal();
 
             const currentPage = window.location.pathname.split("/").pop() || 'index.html';
@@ -863,9 +865,9 @@ function setupHRFeatures() {
         }
     });
 
-    $(document).off('submit', '#createInviteForm').on('submit', '#createInviteForm', async function(e) {
+    $(document).off('submit', '#createInviteForm').on('submit', '#createInviteForm', async function (e) {
         e.preventDefault();
-        const expireInput = $('#inviteExpire').val(); 
+        const expireInput = $('#inviteExpire').val();
         if (!expireInput) return Swal.fire("กรุณาระบุเวลาหมดอายุ");
 
         try {
@@ -900,33 +902,33 @@ async function initRegister() {
         return Swal.fire("ลิงก์หมดอายุหรือไม่ถูกต้อง");
     }
 
-    $('#registerForm').submit(async function(e) {
+    $('#registerForm').submit(async function (e) {
         e.preventDefault();
         const username = $('#username').val().trim().toLowerCase();
         const pass = $('#password').val();
-        
+
         if (pass !== $('#confirm').val()) return Swal.fire("รหัสผ่านไม่ตรงกัน");
 
-        const permanentEmail = username + "@gmail.com"; 
+        const permanentEmail = username + "@gmail.com";
 
-        const { data, error } = await client.auth.signUp({ 
-            email: permanentEmail, 
-            password: pass 
+        const { data, error } = await client.auth.signUp({
+            email: permanentEmail,
+            password: pass
         });
 
         if (error) return Swal.fire(error.message);
 
-        await client.from("profiles").update({ 
-            username: username, 
-            email: permanentEmail, 
-            role: "staff", 
-            full_name: username 
+        await client.from("profiles").update({
+            username: username,
+            email: permanentEmail,
+            role: "staff",
+            full_name: username
         }).eq("id", data.user.id);
 
         await client.from("invites").update({ used: true, used_by: data.user.id }).eq("token", token);
-        
-        Swal.fire({ icon: "success", title: "สมัครสำเร็จ" }).then(() => { 
-            window.location = "workshop.html"; 
+
+        Swal.fire({ icon: "success", title: "สมัครสำเร็จ" }).then(() => {
+            window.location = "workshop.html";
         });
     });
 }
@@ -958,20 +960,20 @@ function openProfileModal() {
 
 function closeProfileModal() { $('#profileModal').addClass('hidden').css('display', 'none'); }
 
-$('#profileUpdateForm').submit(async function(e) {
+$('#profileUpdateForm').submit(async function (e) {
     e.preventDefault();
-    
+
     const newUsername = $('#editUsername').val().trim().toLowerCase();
     const newName = $('#editFullName').val().trim();
-    const newPass = $('#newProfilePass').val(); 
+    const newPass = $('#newProfilePass').val();
     const avatarFile = $('#avatarInput')[0].files[0];
 
     closeProfileModal();
 
-    Swal.fire({ 
-        title: 'กำลังบันทึก...', 
+    Swal.fire({
+        title: 'กำลังบันทึก...',
         allowOutsideClick: false,
-        didOpen: () => Swal.showLoading() 
+        didOpen: () => Swal.showLoading()
     });
 
     try {
@@ -986,10 +988,10 @@ $('#profileUpdateForm').submit(async function(e) {
         }
 
         const { error: updateError } = await client.from('profiles')
-            .update({ 
-                full_name: newName, 
-                username: newUsername, 
-                avatar_url: avatarUrl 
+            .update({
+                full_name: newName,
+                username: newUsername,
+                avatar_url: avatarUrl
             })
             .eq('id', currentUser.id);
 
@@ -1005,8 +1007,8 @@ $('#profileUpdateForm').submit(async function(e) {
             title: 'สำเร็จ!',
             text: 'อัปเดตข้อมูลเรียบร้อยแล้ว',
             confirmButtonColor: '#721c24'
-        }).then(() => { 
-            location.reload(); 
+        }).then(() => {
+            location.reload();
         });
 
     } catch (err) {
@@ -1022,7 +1024,7 @@ $('#profileUpdateForm').submit(async function(e) {
     }
 });
 
-$('#avatarInput').change(function() {
+$('#avatarInput').change(function () {
     const file = this.files[0];
     if (file) {
         const reader = new FileReader();
